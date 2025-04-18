@@ -1,0 +1,37 @@
+name: stts
+description: "Speech-to-Text and Text-to-Speech plugin."
+version: 0.0.1
+homepage: https://github.com/llfbandit/stts
+
+topics:
+  - speech-to-text
+  - stt
+  - speechtotext
+
+environment:
+  sdk: ^3.3.0
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  stts_platform_interface: ^1.0.0
+  stts_web: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^5.0.0
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        package: com.llfbandit.stts
+        pluginClass: SttsPlugin
+      ios:
+        pluginClass: SttsPlugin
+      web:
+        default_package: stts_web

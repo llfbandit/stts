@@ -1,0 +1,7 @@
+name: stts_workspace
+
+environment:
+  sdk: ^3.3.0
+
+dev_dependencies:
+  melos: ^6.0.0
