@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - stts (1.0.0):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - stts (from `.symlinks/plugins/stts/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  stts:
+    :path: ".symlinks/plugins/stts/ios"
+
+SPEC CHECKSUMS:
+  Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
+  stts: b3ae6827e7c3734b6ef84a525419e05475aed375
+
+PODFILE CHECKSUM: 4305caec6b40dde0ae97be1573c53de1882a07e5
+
+COCOAPODS: 1.16.2
