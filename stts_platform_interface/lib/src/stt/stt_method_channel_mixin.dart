@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'model/stt_state.dart';
 import 'stt_platform_interface.dart';
 
-/// An implementation of [SttsPlatform] that uses method channels.
+/// An implementation of [SttPlatform] that uses method channels.
 mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   /// The method channel used to interact with the native platform.
   final _methodChannel = const MethodChannel('com.llfbandit.stt/methods');

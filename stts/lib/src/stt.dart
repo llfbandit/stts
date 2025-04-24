@@ -1,43 +1,36 @@
 import 'package:stts_platform_interface/stts_platform_interface.dart';
 
+/// Speech-to-Text recognizer.
 class Stt extends SttPlatformInterface {
-  SttPlatformInterface get _instance => SttPlatformInterface.instance;
+  SttPlatformInterface get _stt => SttPlatformInterface.instance;
 
   @override
-  Future<bool> isSupported() => _instance.isSupported();
+  Future<bool> isSupported() => _stt.isSupported();
 
   @override
-  Future<bool> hasPermission() => _instance.hasPermission();
+  Future<bool> hasPermission() => _stt.hasPermission();
 
   @override
-  Future<String> getLocale() => _instance.getLocale();
+  Future<String> getLocale() => _stt.getLocale();
 
   @override
-  Future<void> setLocale(String language) {
-    return _instance.setLocale(language);
-  }
+  Future<void> setLocale(String language) => _stt.setLocale(language);
 
   @override
-  Future<List<String>> getSupportedLocales() {
-    return _instance.getSupportedLocales();
-  }
+  Future<List<String>> getSupportedLocales() => _stt.getSupportedLocales();
 
   @override
-  Future<void> start() => _instance.start();
+  Future<void> start() => _stt.start();
 
   @override
-  Future<void> stop() => _instance.stop();
+  Future<void> stop() => _stt.stop();
 
   @override
-  Future<void> dispose() => _instance.dispose();
+  Future<void> dispose() => _stt.dispose();
 
   @override
-  Stream<SttState> get onStateChanged {
-    return _instance.onStateChanged;
-  }
+  Stream<SttState> get onStateChanged => _stt.onStateChanged;
 
   @override
-  Stream<String> get onResultChanged {
-    return _instance.onResultChanged;
-  }
+  Stream<String> get onResultChanged => _stt.onResultChanged;
 }
