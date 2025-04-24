@@ -1,15 +1,15 @@
 import Speech
 
-enum SpeechError: Error {
+enum SttError: Error {
   case error(_ message: String)
 }
 
-enum SpeechState: Int {
+enum SttState: Int {
   case stop = 0
   case start = 1
 }
 
-class Stts {
+class Stt {
   private var currentLocale: Locale = Locale.current
   
   private let audioEngine = AVAudioEngine()
@@ -17,10 +17,10 @@ class Stts {
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
   private var recognitionTask: SFSpeechRecognitionTask?
   
-  private var stateEventHandler: StateStreamHandler
-  private var resultEventHandler: ResultStreamHandler
+  private var stateEventHandler: SttStateStreamHandler
+  private var resultEventHandler: SttResultStreamHandler
   
-  init(stateEventHandler: StateStreamHandler, resultEventHandler: ResultStreamHandler) {
+  init(stateEventHandler: SttStateStreamHandler, resultEventHandler: SttResultStreamHandler) {
     self.stateEventHandler = stateEventHandler
     self.resultEventHandler = resultEventHandler
   }
@@ -68,7 +68,7 @@ class Stts {
     audioEngine.prepare()
     try audioEngine.start()
     
-    stateEventHandler.sendEvent(SpeechState.start)
+    stateEventHandler.sendEvent(SttState.start)
   }
   
   func stop() {
@@ -83,7 +83,7 @@ class Stts {
     
     recognizer = nil
     
-    stateEventHandler.sendEvent(SpeechState.stop)
+    stateEventHandler.sendEvent(SttState.stop)
   }
   
   func dispose() {
@@ -93,7 +93,7 @@ class Stts {
   private func prepareRecognition() throws {
     let recognizer = SFSpeechRecognizer(locale: currentLocale)
     guard let recognizer else {
-      throw SpeechError.error("Failed to create recognizer.")
+      throw SttError.error("Failed to create recognizer.")
     }
 
     // setup request
@@ -115,7 +115,10 @@ class Stts {
       
       if let result = result {
         let transcription = result.bestTranscription
-        self.resultEventHandler.sendEvent(transcription.formattedString)
+
+        if !transcription.formattedString.isEmpty {
+          self.resultEventHandler.sendEvent(transcription.formattedString)
+        }
         
         // isFinal seems to be always false, stops with confidence instead.
         // Partial results are always with confidence == 0.

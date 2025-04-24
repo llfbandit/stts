@@ -1,15 +1,16 @@
-package com.llfbandit.stts.stream
+package com.llfbandit.stts.stt.stream
 
 import android.os.Handler
 import android.os.Looper
-import com.llfbandit.stts.model.RecognitionError
-import com.llfbandit.stts.model.State
+import com.llfbandit.stts.stt.model.SttRecognitionError
+import com.llfbandit.stts.stt.model.SttState
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
 
-class SpeechStateStreamHandler : EventChannel.StreamHandler {
+class SttStateStreamHandler : EventChannel.StreamHandler {
   // Event producer
   private var eventSink: EventSink? = null
+  private var state: SttState = SttState.Stop
 
   private val uiThreadHandler = Handler(Looper.getMainLooper())
 
@@ -21,13 +22,17 @@ class SpeechStateStreamHandler : EventChannel.StreamHandler {
     eventSink = null
   }
 
-  fun sendEvent(state: State) {
-    uiThreadHandler.post {
-      eventSink?.success(state.ordinal)
+  fun sendEvent(state: SttState) {
+    if (this.state != state) {
+      this.state = state
+
+      uiThreadHandler.post {
+        eventSink?.success(state.ordinal)
+      }
     }
   }
 
-  fun sendErrorEvent(error: RecognitionError) {
+  fun sendErrorEvent(error: SttRecognitionError) {
     uiThreadHandler.post {
       eventSink?.error("${error.code}", error.message, null)
     }

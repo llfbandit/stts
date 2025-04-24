@@ -15,11 +15,11 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  final _sttsPlugin = Stts();
+  final _stt = Stt();
   bool? _hasPermission;
   String _text = '';
   String? _error;
-  StreamSubscription<SpeechState>? _stateSubscription;
+  StreamSubscription<SttState>? _stateSubscription;
   StreamSubscription<String>? _resultSubscription;
   bool _started = false;
   final _lang = 'fr-FR';
@@ -28,21 +28,21 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    _sttsPlugin.getSupportedLocales().then((loc) {
+    _stt.getSupportedLocales().then((loc) {
       debugPrint('Supported locales: $loc');
 
       if (loc.contains(_lang)) {
-        _sttsPlugin.setLocale(_lang).then((_) {
-          _sttsPlugin.getLocale().then((lang) {
+        _stt.setLocale(_lang).then((_) {
+          _stt.getLocale().then((lang) {
             debugPrint('Current locale: $lang');
           });
         });
       }
     });
 
-    _stateSubscription = _sttsPlugin.onStateChanged.listen(
-      (speechState) {
-        setState(() => _started = speechState == SpeechState.start);
+    _stateSubscription = _stt.onStateChanged.listen(
+      (sttState) {
+        setState(() => _started = sttState == SttState.start);
       },
       onError: (err) {
         debugPrint(err.toString());
@@ -50,7 +50,7 @@ class _MyAppState extends State<MyApp> {
       },
     );
 
-    _resultSubscription = _sttsPlugin.onResultChanged.listen((result) {
+    _resultSubscription = _stt.onResultChanged.listen((result) {
       debugPrint(result);
       setState(() => _text = result);
     });
@@ -63,7 +63,7 @@ class _MyAppState extends State<MyApp> {
     _stateSubscription?.cancel();
     _resultSubscription?.cancel();
 
-    _sttsPlugin.dispose();
+    _stt.dispose();
   }
 
   @override
@@ -77,7 +77,7 @@ class _MyAppState extends State<MyApp> {
             children: [
               TextButton(
                 onPressed: () async {
-                  final result = await _sttsPlugin.hasPermission();
+                  final result = await _stt.hasPermission();
                   setState(() => _hasPermission = result);
                 },
                 child: Text('Request permission'),
@@ -87,13 +87,13 @@ class _MyAppState extends State<MyApp> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   TextButton(
-                    onPressed: _started ? null : () => _sttsPlugin.start(),
+                    onPressed: _started ? null : () => _stt.start(),
                     child: Text('Start'),
                   ),
                   TextButton(
                     onPressed: _started
                         ? () {
-                            _sttsPlugin.stop();
+                            _stt.stop();
                             setState(() {
                               _text = '';
                               _error = null;

@@ -1,8 +1,8 @@
 import Flutter
 
-class StateStreamHandler: NSObject, FlutterStreamHandler {
+class SttStateStreamHandler: NSObject, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?
-  private var currentState = SpeechState.stop
+  private var currentState = SttState.stop
   
   public func onListen(
     withArguments arguments: Any?,
@@ -17,7 +17,7 @@ class StateStreamHandler: NSObject, FlutterStreamHandler {
     return nil
   }
   
-  func sendEvent(_ state: SpeechState) {
+  func sendEvent(_ state: SttState) {
     if let eventSink = eventSink, currentState != state {
       currentState = state
       
@@ -36,7 +36,7 @@ class StateStreamHandler: NSObject, FlutterStreamHandler {
   }
 }
 
-class ResultStreamHandler: NSObject, FlutterStreamHandler {
+class SttResultStreamHandler: NSObject, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?
   
   public func onListen(

@@ -1,58 +1,58 @@
 package com.llfbandit.stts
 
-import com.llfbandit.stts.permission.PermissionManager
-import com.llfbandit.stts.stream.SpeechResultStreamHandler
-import com.llfbandit.stts.stream.SpeechStateStreamHandler
+import com.llfbandit.stts.stt.Stt
+import com.llfbandit.stts.stt.SttMethodHandler
+import com.llfbandit.stts.stt.permission.SttPermissionManager
+import com.llfbandit.stts.stt.stream.SttResultStreamHandler
+import com.llfbandit.stts.stt.stream.SttStateStreamHandler
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.EventChannel
-import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugin.common.MethodChannel.MethodCallHandler
-import io.flutter.plugin.common.MethodChannel.Result
 
 /** SttsPlugin */
-class SttsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
+class SttsPlugin : FlutterPlugin, ActivityAware {
   companion object {
-    const val EVENTS_STATE_CHANNEL = "com.llfbandit.stts/states"
-    const val EVENTS_RESULT_CHANNEL = "com.llfbandit.stts/results"
+    const val STT_METHODS_CHANNEL = "com.llfbandit.stt/methods"
+    const val STT_EVENTS_STATE_CHANNEL = "com.llfbandit.stt/states"
+    const val STT_EVENTS_RESULT_CHANNEL = "com.llfbandit.stt/results"
   }
 
-  private lateinit var channel: MethodChannel
   private var activityBinding: ActivityPluginBinding? = null
 
-  private var permissionManager = PermissionManager()
-
-  private lateinit var stts: Stts
-  private var eventStateChannel: EventChannel? = null
-  private val stateStreamHandler = SpeechStateStreamHandler()
-  private var eventResultChannel: EventChannel? = null
-  private val resultStreamHandler = SpeechResultStreamHandler()
+  // STT members
+  private lateinit var stt: Stt
+  private var sttPermissionManager = SttPermissionManager()
+  private lateinit var sttMethodChannel: MethodChannel
+  private var sttEventStateChannel: EventChannel? = null
+  private val sttStateStreamHandler = SttStateStreamHandler()
+  private var sttEventResultChannel: EventChannel? = null
+  private val sttResultStreamHandler = SttResultStreamHandler()
 
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     val messenger = binding.binaryMessenger
 
-    channel = MethodChannel(messenger, "stts")
-    channel.setMethodCallHandler(this)
+    sttEventStateChannel = EventChannel(messenger, STT_EVENTS_STATE_CHANNEL)
+    sttEventStateChannel?.setStreamHandler(sttStateStreamHandler)
+    sttEventResultChannel = EventChannel(messenger, STT_EVENTS_RESULT_CHANNEL)
+    sttEventResultChannel?.setStreamHandler(sttResultStreamHandler)
 
-    eventStateChannel = EventChannel(messenger, EVENTS_STATE_CHANNEL)
-    eventStateChannel?.setStreamHandler(stateStreamHandler)
-    eventResultChannel = EventChannel(messenger, EVENTS_RESULT_CHANNEL)
-    eventResultChannel?.setStreamHandler(resultStreamHandler)
+    stt = Stt(binding.applicationContext, sttStateStreamHandler, sttResultStreamHandler)
 
-    stts = Stts(binding.applicationContext, stateStreamHandler, resultStreamHandler)
+    sttMethodChannel = MethodChannel(messenger, STT_METHODS_CHANNEL)
+    sttMethodChannel.setMethodCallHandler(SttMethodHandler(stt, sttPermissionManager))
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-    channel.setMethodCallHandler(null)
-    stts.dispose()
+    sttMethodChannel.setMethodCallHandler(null)
+    stt.dispose()
 
-    eventStateChannel?.setStreamHandler(null)
-    eventStateChannel = null
+    sttEventStateChannel?.setStreamHandler(null)
+    sttEventStateChannel = null
 
-    eventResultChannel?.setStreamHandler(null)
-    eventResultChannel = null
+    sttEventResultChannel?.setStreamHandler(null)
+    sttEventResultChannel = null
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -60,8 +60,8 @@ class SttsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   override fun onAttachedToActivity(binding: ActivityPluginBinding) {
     activityBinding = binding
 
-    permissionManager.setActivity(binding.activity)
-    activityBinding?.addRequestPermissionsResultListener(permissionManager)
+    sttPermissionManager.setActivity(binding.activity)
+    activityBinding?.addRequestPermissionsResultListener(sttPermissionManager)
   }
 
   override fun onDetachedFromActivityForConfigChanges() {
@@ -74,58 +74,12 @@ class SttsPlugin : FlutterPlugin, MethodCallHandler, ActivityAware {
   }
 
   override fun onDetachedFromActivity() {
-    permissionManager.setActivity(null)
-    activityBinding?.removeRequestPermissionsResultListener(permissionManager)
+    sttPermissionManager.setActivity(null)
+    activityBinding?.removeRequestPermissionsResultListener(sttPermissionManager)
 
     activityBinding = null
   }
   /// END ActivityAware
   /////////////////////////////////////////////////////////////////////////////
 
-  override fun onMethodCall(call: MethodCall, result: Result) {
-    when (call.method) {
-      "isSupported" -> {
-        result.success(stts.isSupported())
-      }
-
-      "hasPermission" -> {
-        permissionManager.hasPermission(result::success)
-      }
-
-      "getLocale" -> {
-        result.success(stts.getLocale())
-      }
-
-      "setLocale" -> {
-        val language = call.argument<String>("language")
-        if (language != null) {
-          stts.setLocale(language)
-        }
-        result.success(null)
-      }
-
-      "getSupportedLocales" -> {
-        stts.getSupportedLocales(result::success)
-      }
-
-      "start" -> {
-        stts.start()
-        result.success(null)
-      }
-
-      "stop" -> {
-        stts.stop()
-        result.success(null)
-      }
-
-      "dispose" -> {
-        stts.dispose()
-        result.success(null)
-      }
-
-      else -> {
-        result.notImplemented()
-      }
-    }
-  }
 }

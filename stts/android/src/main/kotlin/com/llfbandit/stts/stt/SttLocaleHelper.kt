@@ -1,4 +1,4 @@
-package com.llfbandit.stts
+package com.llfbandit.stts.stt
 
 import android.app.Activity
 import android.content.BroadcastReceiver

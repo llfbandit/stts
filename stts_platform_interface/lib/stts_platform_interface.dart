@@ -1,2 +1,2 @@
-export 'src/model/speech_state.dart';
-export 'src/stts_platform_interface.dart';
+export 'src/stt/model/stt_state.dart';
+export 'src/stt/stt_platform_interface.dart';

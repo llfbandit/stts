@@ -16,14 +16,14 @@ extension type _SpeechRecognition._(SpeechRecognition _)
 
 class SttsWeb {
   static void registerWith(Registrar registrar) {
-    SttsPlatform.instance = SttsWebImpl();
+    SttPlatformInterface.instance = SttsWebImpl();
   }
 }
 
-class SttsWebImpl extends SttsPlatform {
+class SttsWebImpl extends SttPlatformInterface {
   SpeechRecognition? _recognizerInstance;
   String _language = window.navigator.language;
-  StreamController<SpeechState>? _stateStreamCtrl;
+  StreamController<SttState>? _stateStreamCtrl;
   StreamController<String>? _resultStreamCtrl;
 
   @override
@@ -87,7 +87,7 @@ class SttsWebImpl extends SttsPlatform {
   }
 
   @override
-  Stream<SpeechState> get onStateChanged {
+  Stream<SttState> get onStateChanged {
     _stateStreamCtrl ??= StreamController.broadcast();
     return _stateStreamCtrl!.stream;
   }
@@ -107,7 +107,7 @@ class SttsWebImpl extends SttsPlatform {
     return _recognizerInstance!;
   }
 
-  void _updateState(SpeechState state) {
+  void _updateState(SttState state) {
     final ctrl = _stateStreamCtrl;
     if (ctrl == null) return;
 
@@ -143,7 +143,7 @@ class SttsWebImpl extends SttsPlatform {
     if (!_isSupported()) return;
 
     _recognizer.stop();
-    _updateState(SpeechState.stop);
+    _updateState(SttState.stop);
   }
 
   ///////////////////////////////////////////////////////
@@ -154,7 +154,7 @@ class SttsWebImpl extends SttsPlatform {
     _updateStateError(event.error);
   }
 
-  void _onStart(Event event) => _updateState(SpeechState.start);
+  void _onStart(Event event) => _updateState(SttState.start);
 
   void _onEnd(Event event) => _stop();
 

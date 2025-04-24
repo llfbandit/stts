@@ -1,4 +1,4 @@
-package com.llfbandit.stts.permission
+package com.llfbandit.stts.stt.permission
 
 import android.Manifest
 import android.app.Activity
@@ -6,12 +6,12 @@ import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 
-fun interface PermissionResultCallback {
+fun interface SttPermissionResultCallback {
   fun onResult(granted: Boolean)
 }
 
-class PermissionManager : RequestPermissionsResultListener {
-  private var resultCallback: PermissionResultCallback? = null
+class SttPermissionManager : RequestPermissionsResultListener {
+  private var resultCallback: SttPermissionResultCallback? = null
   private var activity: Activity? = null
 
   fun setActivity(activity: Activity?) {
@@ -33,7 +33,7 @@ class PermissionManager : RequestPermissionsResultListener {
     return false
   }
 
-  fun hasPermission(resultCallback: PermissionResultCallback) {
+  fun hasPermission(resultCallback: SttPermissionResultCallback) {
     if (activity == null) {
       resultCallback.onResult(false)
       return

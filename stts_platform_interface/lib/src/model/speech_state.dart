@@ -1,1 +1,0 @@
-enum SpeechState { stop, start }

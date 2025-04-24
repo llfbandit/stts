@@ -1,11 +1,11 @@
-package com.llfbandit.stts.stream
+package com.llfbandit.stts.stt.stream
 
 import android.os.Handler
 import android.os.Looper
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.EventChannel.EventSink
 
-class SpeechResultStreamHandler: EventChannel.StreamHandler {
+class SttResultStreamHandler: EventChannel.StreamHandler {
   // Event producer
   private var eventSink: EventSink? = null
 

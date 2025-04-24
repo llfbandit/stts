@@ -1,4 +1,4 @@
-package com.llfbandit.stts
+package com.llfbandit.stts.stt
 
 import android.content.Context
 import android.content.Intent
@@ -6,17 +6,17 @@ import android.os.Build
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
-import com.llfbandit.stts.model.State
-import com.llfbandit.stts.stream.SpeechResultStreamHandler
-import com.llfbandit.stts.stream.SpeechStateStreamHandler
+import com.llfbandit.stts.stt.model.SttState
+import com.llfbandit.stts.stt.stream.SttResultStreamHandler
+import com.llfbandit.stts.stt.stream.SttStateStreamHandler
 import java.util.Locale
 
-class Stts(
+class Stt(
   private val context: Context,
-  private val speechStateStreamHandler: SpeechStateStreamHandler,
-  private val resultStreamHandler: SpeechResultStreamHandler
+  private val stateStreamHandler: SttStateStreamHandler,
+  private val resultStreamHandler: SttResultStreamHandler
 ) {
-  private val logTag = "Stts"
+  private val logTag = "Stt"
   private var currentLocale = Locale.getDefault()
   private var speechRecognizer: SpeechRecognizer? = null
 
@@ -24,7 +24,7 @@ class Stts(
     val result = SpeechRecognizer.isRecognitionAvailable(context)
 
     if (!result) {
-      Log.d(logTag, "SpeechRecognizer is not supported.")
+      Log.d(logTag, "Speech recognition is not supported.")
     }
 
     return result
@@ -48,8 +48,12 @@ class Stts(
   fun start() {
     if (!isSupported()) return
 
-    recognizer.setRecognitionListener(
-      SpeechRecognitionListener(speechStateStreamHandler, resultStreamHandler)
+    if (speechRecognizer == null) {
+      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+    }
+
+    speechRecognizer?.setRecognitionListener(
+      SttRecognitionListener(stateStreamHandler, resultStreamHandler, onStop = { stop() })
     )
 
     val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
@@ -61,31 +65,22 @@ class Stts(
       }
     }
 
-    recognizer.startListening(recognizerIntent)
+    speechRecognizer?.startListening(recognizerIntent)
   }
 
   fun stop() {
     if (!isSupported()) return
 
-    recognizer.cancel()
-    dispose()
-    speechStateStreamHandler.sendEvent(State.Stop)
+    speechRecognizer?.setRecognitionListener(null)
+    speechRecognizer?.cancel()
+    stateStreamHandler.sendEvent(SttState.Stop)
   }
 
   fun dispose() {
-    speechRecognizer?.stopListening()
-    speechRecognizer?.setRecognitionListener(null)
+    stop()
 
+    speechRecognizer?.setRecognitionListener(null)
     speechRecognizer?.destroy()
     speechRecognizer = null
   }
-
-  private val recognizer: SpeechRecognizer
-    get() {
-      if (speechRecognizer == null) {
-        speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
-      }
-
-      return speechRecognizer!!
-    }
 }
