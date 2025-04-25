@@ -58,6 +58,13 @@ mixin TtsMethodChannel implements TtsMethodChannelPlatformInterface {
   }
 
   @override
+  Future<void> setVoice(String voiceName) {
+    return _methodChannel.invokeMethod<void>('setLanguage', {
+      'voice': voiceName,
+    });
+  }
+
+  @override
   Future<List<String>> getVoices() async {
     final result = await _methodChannel.invokeMethod<List>(
       'getVoices',

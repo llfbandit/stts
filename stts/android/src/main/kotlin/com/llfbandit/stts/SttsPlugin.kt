@@ -5,6 +5,9 @@ import com.llfbandit.stts.stt.SttMethodHandler
 import com.llfbandit.stts.stt.permission.SttPermissionManager
 import com.llfbandit.stts.stt.stream.SttResultStreamHandler
 import com.llfbandit.stts.stt.stream.SttStateStreamHandler
+import com.llfbandit.stts.tts.Tts
+import com.llfbandit.stts.tts.TtsMethodHandler
+import com.llfbandit.stts.tts.stream.TtsStateStreamHandler
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -17,6 +20,9 @@ class SttsPlugin : FlutterPlugin, ActivityAware {
     const val STT_METHODS_CHANNEL = "com.llfbandit.stt/methods"
     const val STT_EVENTS_STATE_CHANNEL = "com.llfbandit.stt/states"
     const val STT_EVENTS_RESULT_CHANNEL = "com.llfbandit.stt/results"
+
+    const val TTS_METHODS_CHANNEL = "com.llfbandit.tts/methods"
+    const val TTS_EVENTS_STATE_CHANNEL = "com.llfbandit.tts/states"
   }
 
   private var activityBinding: ActivityPluginBinding? = null
@@ -30,9 +36,16 @@ class SttsPlugin : FlutterPlugin, ActivityAware {
   private var sttEventResultChannel: EventChannel? = null
   private val sttResultStreamHandler = SttResultStreamHandler()
 
+  // TTS members
+  private lateinit var tts: Tts
+  private lateinit var ttsMethodChannel: MethodChannel
+  private var ttsEventStateChannel: EventChannel? = null
+  private val ttsStateStreamHandler = TtsStateStreamHandler()
+
   override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
     val messenger = binding.binaryMessenger
 
+    // STT
     sttEventStateChannel = EventChannel(messenger, STT_EVENTS_STATE_CHANNEL)
     sttEventStateChannel?.setStreamHandler(sttStateStreamHandler)
     sttEventResultChannel = EventChannel(messenger, STT_EVENTS_RESULT_CHANNEL)
@@ -42,9 +55,19 @@ class SttsPlugin : FlutterPlugin, ActivityAware {
 
     sttMethodChannel = MethodChannel(messenger, STT_METHODS_CHANNEL)
     sttMethodChannel.setMethodCallHandler(SttMethodHandler(stt, sttPermissionManager))
+
+    // TTS
+    ttsEventStateChannel = EventChannel(messenger, TTS_EVENTS_STATE_CHANNEL)
+    ttsEventStateChannel?.setStreamHandler(ttsStateStreamHandler)
+
+    tts = Tts(binding.applicationContext, ttsStateStreamHandler)
+
+    ttsMethodChannel = MethodChannel(messenger, TTS_METHODS_CHANNEL)
+    ttsMethodChannel.setMethodCallHandler(TtsMethodHandler(tts))
   }
 
   override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
+    // STT
     sttMethodChannel.setMethodCallHandler(null)
     stt.dispose()
 
@@ -53,6 +76,13 @@ class SttsPlugin : FlutterPlugin, ActivityAware {
 
     sttEventResultChannel?.setStreamHandler(null)
     sttEventResultChannel = null
+
+    // TTS
+    ttsMethodChannel.setMethodCallHandler(null)
+    tts.dispose()
+
+    ttsEventStateChannel?.setStreamHandler(null)
+    ttsEventStateChannel = null
   }
 
   /////////////////////////////////////////////////////////////////////////////

@@ -70,115 +70,113 @@ class _TtsPageState extends State<TtsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: const Text('Text to speech')),
-        body: Center(
-          child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-            return Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Pitch'),
-                    SizedBox(
-                      width: constraints.maxWidth / 2,
-                      child: Slider(
-                        value: _pitch,
-                        min: 0.0,
-                        max: 2.0,
-                        label: _pitch.round().toString(),
-                        onChanged: (double value) {
-                          _tts.setPitch(value);
-                          setState(() => _pitch = value);
-                        },
-                      ),
+    return Scaffold(
+      appBar: AppBar(title: const Text('Text to speech')),
+      body: Center(
+        child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Pitch'),
+                  SizedBox(
+                    width: constraints.maxWidth / 2,
+                    child: Slider(
+                      value: _pitch,
+                      min: 0.0,
+                      max: 2.0,
+                      label: _pitch.round().toString(),
+                      onChanged: (double value) {
+                        _tts.setPitch(value);
+                        setState(() => _pitch = value);
+                      },
                     ),
-                    Text(_pitch.toStringAsFixed(2)),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Rate'),
-                    SizedBox(
-                      width: constraints.maxWidth / 2,
-                      child: Slider(
-                        value: _rate,
-                        min: 0.1,
-                        max: 10.0,
-                        label: _rate.round().toString(),
-                        onChanged: (double value) {
-                          _tts.setRate(value);
-                          setState(() => _rate = value);
-                        },
-                      ),
+                  ),
+                  Text(_pitch.toStringAsFixed(2)),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Rate'),
+                  SizedBox(
+                    width: constraints.maxWidth / 2,
+                    child: Slider(
+                      value: _rate,
+                      min: 0.1,
+                      max: 10.0,
+                      label: _rate.round().toString(),
+                      onChanged: (double value) {
+                        _tts.setRate(value);
+                        setState(() => _rate = value);
+                      },
                     ),
-                    Text(_rate.toStringAsFixed(2)),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Volume'),
-                    SizedBox(
-                      width: constraints.maxWidth / 2,
-                      child: Slider(
-                        value: _volume,
-                        min: 0.0,
-                        max: 1.0,
-                        label: _volume.round().toString(),
-                        onChanged: (double value) {
-                          _tts.setVolume(value);
-                          setState(() => _volume = value);
-                        },
-                      ),
+                  ),
+                  Text(_rate.toStringAsFixed(2)),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Volume'),
+                  SizedBox(
+                    width: constraints.maxWidth / 2,
+                    child: Slider(
+                      value: _volume,
+                      min: 0.0,
+                      max: 1.0,
+                      label: _volume.round().toString(),
+                      onChanged: (double value) {
+                        _tts.setVolume(value);
+                        setState(() => _volume = value);
+                      },
                     ),
-                    Text(_volume.toStringAsFixed(2)),
+                  ),
+                  Text(_volume.toStringAsFixed(2)),
+                ],
+              ),
+              SizedBox(height: 100),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (_ttsState == TtsState.pause) ...[
+                    TextButton(
+                      onPressed: () => _tts.resume(),
+                      child: Text('Resume'),
+                    ),
                   ],
-                ),
-                SizedBox(height: 100),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (_ttsState == TtsState.pause) ...[
-                      TextButton(
-                        onPressed: () => _tts.resume(),
-                        child: Text('Resume'),
-                      ),
-                    ],
-                    if (_ttsState == TtsState.start) ...[
-                      TextButton(
-                        onPressed: () => _tts.pause(),
-                        child: Text('Pause'),
-                      ),
-                    ],
-                    if (_ttsState == TtsState.stop) ...[
-                      TextButton(
-                        onPressed: () {
-                          for (var text in _texts) {
-                            _tts.start(text);
-                          }
-                        },
-                        child: Text('Start'),
-                      ),
-                    ],
-                    if (_ttsState == TtsState.start ||
-                        _ttsState == TtsState.pause) ...[
-                      TextButton(
-                        onPressed: () => _tts.stop(),
-                        child: Text('Stop'),
-                      ),
-                    ],
+                  if (_ttsState == TtsState.start) ...[
+                    TextButton(
+                      onPressed: () => _tts.pause(),
+                      child: Text('Pause'),
+                    ),
                   ],
-                ),
-              ],
-            );
-          }),
-        ),
+                  if (_ttsState == TtsState.stop) ...[
+                    TextButton(
+                      onPressed: () {
+                        for (var text in _texts) {
+                          _tts.start(text);
+                        }
+                      },
+                      child: Text('Start'),
+                    ),
+                  ],
+                  if (_ttsState == TtsState.start ||
+                      _ttsState == TtsState.pause) ...[
+                    TextButton(
+                      onPressed: () => _tts.stop(),
+                      child: Text('Stop'),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          );
+        }),
       ),
     );
   }

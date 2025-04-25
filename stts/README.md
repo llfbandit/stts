@@ -1,17 +1,15 @@
 # stts
 
-Speech-to-Text Flutter plugin.
+Speech-to-Text and Text-to-Speech Flutter plugin.
 
-## Getting Started
-
-## Usage
+## Usage of Speech-to-Text
 ```dart
 import 'package:stts/stts.dart';
 
-final stts = Stts();
+final stt = Stt();
 
 // Get state changes
-stts.onStateChanged.listen(
+stt.onStateChanged.listen(
   (speechState) {
     // SpeechState.start/stop
   },
@@ -21,22 +19,52 @@ stts.onStateChanged.listen(
 );
 
 // Get intermediate and final results.
-stts.onResultChanged.listen((result) {
+stt.onResultChanged.listen((result) {
   // The current result String
 });
 
 // Start speech recognition.
-stts.start();
+stt.start();
 
-// ...optionnaly, abort with stts.stop();
+// ...optionnaly, abort with stt.stop();
 
 // As always, don't forget to release resources.
-stts.dispose();
+stt.dispose();
+```
+
+## Usage of Text-to-Speech
+```dart
+import 'package:stts/stts.dart';
+
+final tts = Tts();
+
+// Get state changes
+tts.onStateChanged.listen(
+  (ttsState) {
+    // TtsState.start/stop/pause
+  },
+  onError: (err) {
+    // Retrieve errors from here
+  },
+);
+
+// Add text to utterance. Texts are queued.
+await tts.start('Hello');
+await tts.start('world!');
+
+// ...optionnaly, abort with tts.stop();
+
+// As always, don't forget to release resources.
+tts.dispose();
 ```
 
 ## Platforms setup & infos
 
+You can either use one or both engines in your app. So permissions are only required for dedicated engine.
+
 ### Android
+
+#### Speech-to-Text
 
 Update AndroidManifest.xml file:
 
@@ -59,7 +87,20 @@ For apps targeting Android 11+ (API level 30), interaction with a speech recogni
 
 - Sounds are emitted by the system. There's nothing the plugin can do about it.
 
+#### Text-to-Speech
+
+Apps targeting Android 11+ (API level 30) that use text-to-speech should declare in the manifest file:
+```xml
+<queries>
+  <intent>
+    <action android:name="android.intent.action.TTS_SERVICE" />
+  </intent>
+</queries>
+```
+
 ### iOS
+
+#### Speech-to-Text
 
 Permissions to set in `ios/Runner/Info.plist`:
 ```xml
@@ -70,6 +111,8 @@ Permissions to set in `ios/Runner/Info.plist`:
 ```
 
 ### web
+
+#### Speech-to-Text
 
 Browsers supporting speech recognition: https://caniuse.com/speech-recognition
 

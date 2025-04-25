@@ -38,6 +38,9 @@ abstract class TtsMethodChannelPlatformInterface {
   /// Returns supported languages (e.g. en-US).
   Future<List<String>> getLanguages();
 
+  /// Sets voice.
+  Future<void> setVoice(String voiceName);
+
   /// Returns supported voices.
   Future<List<String>> getVoices();
 

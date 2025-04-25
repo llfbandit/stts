@@ -7,6 +7,7 @@ import 'package:web/web.dart';
 class Tts extends TtsPlatformInterface {
   String _language = window.navigator.language;
   double _rate = 1.0; // 0.1 - 10.0
+  SpeechSynthesisVoice? _voice;
   double _volume = 1.0; // 0.0 - 1.0
   double _pitch = 1.0; // 0.0 - 2.0
   late final bool _supported;
@@ -99,6 +100,18 @@ class Tts extends TtsPlatformInterface {
   }
 
   @override
+  Future<void> setVoice(String voiceName) async {
+    final voices = _synth.getVoices().toDart;
+
+    for (var voice in voices) {
+      if (voice.name == voiceName) {
+        _voice = voice;
+        return;
+      }
+    }
+  }
+
+  @override
   Future<List<String>> getVoices() async {
     if (!_isSupported()) return [];
 
@@ -177,6 +190,7 @@ class Tts extends TtsPlatformInterface {
     final utterance = SpeechSynthesisUtterance(text)
       ..pitch = _pitch
       ..rate = _rate
+      ..voice = _voice
       ..volume = _volume;
 
     utterance.onerror = (SpeechSynthesisErrorEvent event) {

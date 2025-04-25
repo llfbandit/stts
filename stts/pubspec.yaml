@@ -6,7 +6,9 @@ homepage: https://github.com/llfbandit/stts
 topics:
   - speech-to-text
   - stt
-  - speechtotext
+  - text-to-speech
+  - tts
+  - voice-synthesizer
 
 environment:
   sdk: ^3.3.0
