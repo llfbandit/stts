@@ -30,19 +30,19 @@ class Stt(
     return result
   }
 
-  fun getLocale(): String = currentLocale.toLanguageTag()
+  fun getLanguage(): String = currentLocale.toLanguageTag()
 
-  fun setLocale(language: String) {
+  fun setLanguage(language: String) {
     currentLocale = Locale.forLanguageTag(language)
   }
 
-  fun getSupportedLocales(resultCallback: SupportedLocalesResultCallback) {
+  fun getSupportedLanguages(resultCallback: SupportedLanguagesResultCallback) {
     if (!isSupported()) {
       resultCallback.onResult(ArrayList())
       return
     }
 
-    return SpeechLocaleHelper().getSupportedLocales(context, resultCallback)
+    return SpeechLanguageHelper().getSupportedLocales(context, resultCallback)
   }
 
   fun start() {

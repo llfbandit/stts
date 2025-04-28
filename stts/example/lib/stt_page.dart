@@ -24,13 +24,13 @@ class _SttPageState extends State<SttPage> {
   void initState() {
     super.initState();
 
-    _stt.getSupportedLocales().then((loc) {
-      debugPrint('Supported locales: $loc');
+    _stt.getSupportedLanguages().then((loc) {
+      debugPrint('Supported languages: $loc');
 
       if (loc.contains(_lang)) {
-        _stt.setLocale(_lang).then((_) {
-          _stt.getLocale().then((lang) {
-            debugPrint('Current locale: $lang');
+        _stt.setLanguage(_lang).then((_) {
+          _stt.getLanguage().then((lang) {
+            debugPrint('Current language: $lang');
           });
         });
       }

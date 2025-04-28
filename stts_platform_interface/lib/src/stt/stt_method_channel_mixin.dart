@@ -21,22 +21,22 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   }
 
   @override
-  Future<String> getLocale() async {
-    final locale = await _methodChannel.invokeMethod<String>('getLocale');
+  Future<String> getLanguage() async {
+    final locale = await _methodChannel.invokeMethod<String>('getLanguage');
     return locale!;
   }
 
   @override
-  Future<void> setLocale(String language) {
-    return _methodChannel.invokeMethod<void>('setLocale', {
+  Future<void> setLanguage(String language) {
+    return _methodChannel.invokeMethod<void>('setLanguage', {
       'language': language,
     });
   }
 
   @override
-  Future<List<String>> getSupportedLocales() async {
+  Future<List<String>> getSupportedLanguages() async {
     final result = await _methodChannel.invokeMethod<List>(
-      'getSupportedLocales',
+      'getSupportedLanguages',
     );
     return result?.cast<String>() ?? [];
   }
@@ -53,7 +53,7 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
 
   @override
   Future<void> dispose() {
-    throw UnimplementedError('dispose() has not been implemented.');
+    return _methodChannel.invokeMethod<void>('dispose');
   }
 }
 

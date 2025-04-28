@@ -14,15 +14,15 @@ class Stt extends SttPlatformInterface {
   Future<bool> hasPermission() => _safeCall(_stt.hasPermission);
 
   @override
-  Future<String> getLocale() => _safeCall(_stt.getLocale);
+  Future<String> getLanguage() => _safeCall(_stt.getLanguage);
 
   @override
-  Future<void> setLocale(String language) =>
-      _safeCall(() => _stt.setLocale(language));
+  Future<void> setLanguage(String language) =>
+      _safeCall(() => _stt.setLanguage(language));
 
   @override
-  Future<List<String>> getSupportedLocales() =>
-      _safeCall(_stt.getSupportedLocales);
+  Future<List<String>> getSupportedLanguages() =>
+      _safeCall(_stt.getSupportedLanguages);
 
   @override
   Future<void> start() => _safeCall(_stt.start);

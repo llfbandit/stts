@@ -16,16 +16,18 @@ abstract class TtsMethodChannelPlatformInterface {
   /// Checks if the platform is supported.
   Future<bool> isSupported() async => false;
 
-  /// Starts utterance of the given [text].
+  /// Enqueue and starts utterance of the given [text].
   Future<void> start(String text);
 
-  /// Stops current utterance.
+  /// Stops and clear all utterances.
   Future<void> stop();
 
   /// Pauses current utterance.
   Future<void> pause();
 
   /// Resumes current utterance.
+  ///
+  /// Android: Below API 26, utterance will restart. Otherwise, text is resumed from the closest "word".
   Future<void> resume();
 
   /// Sets language for next utterance.

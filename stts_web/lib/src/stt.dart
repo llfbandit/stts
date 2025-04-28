@@ -27,15 +27,15 @@ class Stt extends SttPlatformInterface {
   Future<bool> hasPermission() => isSupported();
 
   @override
-  Future<String> getLocale() async => _language;
+  Future<String> getLanguage() async => _language;
 
   @override
-  Future<void> setLocale(String language) async => _language = language;
+  Future<void> setLanguage(String language) async => _language = language;
 
   // There's no feature to retrieve the supported languages.
   // Provide the default value from the recognizer if any.
   @override
-  Future<List<String>> getSupportedLocales() async {
+  Future<List<String>> getSupportedLanguages() async {
     if (!_isSupported()) return [];
 
     final lang = _recognizer.lang;

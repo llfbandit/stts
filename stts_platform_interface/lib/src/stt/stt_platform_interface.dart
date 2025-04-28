@@ -26,14 +26,14 @@ abstract class SttMethodChannelPlatformInterface {
   /// Checks and requests audio microphone permission.
   Future<bool> hasPermission();
 
-  /// Gets current locale for the recognizer.
-  Future<String> getLocale();
+  /// Gets current language for the recognizer (e.g. en-US).
+  Future<String> getLanguage();
 
-  /// Sets current locale for the recognizer.
-  Future<void> setLocale(String language);
+  /// Sets current language for the recognizer (e.g. en-US).
+  Future<void> setLanguage(String language);
 
-  /// Gets supported languages by the recognizer.
-  Future<List<String>> getSupportedLocales();
+  /// Gets supported languages by the recognizer (e.g. en-US).
+  Future<List<String>> getSupportedLanguages();
 
   /// Starts Speech-to-Text recognizer.
   Future<void> start();

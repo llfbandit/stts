@@ -65,7 +65,7 @@ final sub = tts.onStateChanged.listen(
   },
 );
 
-// Add text to utterance. Texts are queued.
+// Add utterance. Texts are queued.
 await tts.start('Hello');
 await tts.start('world!');
 
@@ -104,6 +104,7 @@ For apps targeting Android 11+ (API level 30), interaction with a speech recogni
 ```
 
 - Sounds are emitted by the system. There's nothing the plugin can do about it.
+- Pause will stop immediately but resume will restart the current utterance below API 26.
 
 #### Text-to-Speech
 

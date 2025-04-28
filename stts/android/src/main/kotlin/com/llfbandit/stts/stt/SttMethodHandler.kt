@@ -19,20 +19,20 @@ class SttMethodHandler(
         permissionManager.hasPermission(result::success)
       }
 
-      "getLocale" -> {
-        result.success(stt.getLocale())
+      "getLanguage" -> {
+        result.success(stt.getLanguage())
       }
 
-      "setLocale" -> {
+      "setLanguage" -> {
         val language = call.argument<String>("language")
         if (language != null) {
-          stt.setLocale(language)
+          stt.setLanguage(language)
         }
         result.success(null)
       }
 
-      "getSupportedLocales" -> {
-        stt.getSupportedLocales(result::success)
+      "getSupportedLanguages" -> {
+        stt.getSupportedLanguages(result::success)
       }
 
       "start" -> {

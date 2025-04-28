@@ -11,12 +11,12 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer.createOnDeviceSpeechRecognizer
 import java.util.concurrent.Executors
 
-fun interface SupportedLocalesResultCallback {
+fun interface SupportedLanguagesResultCallback {
   fun onResult(locales: ArrayList<String>)
 }
 
-class SpeechLocaleHelper {
-  fun getSupportedLocales(context: Context, resultCallback: SupportedLocalesResultCallback) {
+class SpeechLanguageHelper {
+  fun getSupportedLocales(context: Context, resultCallback: SupportedLanguagesResultCallback) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       val recognizer = createOnDeviceSpeechRecognizer(context)
       val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
