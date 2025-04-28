@@ -31,8 +31,8 @@ class SttMethodHandler(
         result.success(null)
       }
 
-      "getSupportedLanguages" -> {
-        stt.getSupportedLanguages(result::success)
+      "getLanguages" -> {
+        stt.getLanguages(result::success)
       }
 
       "start" -> {

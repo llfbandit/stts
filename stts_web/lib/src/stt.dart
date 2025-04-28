@@ -35,7 +35,7 @@ class Stt extends SttPlatformInterface {
   // There's no feature to retrieve the supported languages.
   // Provide the default value from the recognizer if any.
   @override
-  Future<List<String>> getSupportedLanguages() async {
+  Future<List<String>> getLanguages() async {
     if (!_isSupported()) return [];
 
     final lang = _recognizer.lang;

@@ -24,7 +24,7 @@ class _SttPageState extends State<SttPage> {
   void initState() {
     super.initState();
 
-    _stt.getSupportedLanguages().then((loc) {
+    _stt.getLanguages().then((loc) {
       debugPrint('Supported languages: $loc');
 
       if (loc.contains(_lang)) {

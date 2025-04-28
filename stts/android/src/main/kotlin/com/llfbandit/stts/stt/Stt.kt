@@ -36,7 +36,7 @@ class Stt(
     currentLocale = Locale.forLanguageTag(language)
   }
 
-  fun getSupportedLanguages(resultCallback: SupportedLanguagesResultCallback) {
+  fun getLanguages(resultCallback: SupportedLanguagesResultCallback) {
     if (!isSupported()) {
       resultCallback.onResult(ArrayList())
       return

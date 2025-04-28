@@ -20,7 +20,7 @@ abstract class SttPlatformInterface extends PlatformInterface
 }
 
 abstract class SttMethodChannelPlatformInterface {
-  /// Checks if the platform is supported.
+  /// Checks if the platform and service is supported.
   Future<bool> isSupported() async => false;
 
   /// Checks and requests audio microphone permission.
@@ -33,7 +33,7 @@ abstract class SttMethodChannelPlatformInterface {
   Future<void> setLanguage(String language);
 
   /// Gets supported languages by the recognizer (e.g. en-US).
-  Future<List<String>> getSupportedLanguages();
+  Future<List<String>> getLanguages();
 
   /// Starts Speech-to-Text recognizer.
   Future<void> start();

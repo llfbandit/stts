@@ -13,10 +13,10 @@ abstract class TtsPlatformInterface
 }
 
 abstract class TtsMethodChannelPlatformInterface {
-  /// Checks if the platform is supported.
+  /// Checks if the platform and service is supported.
   Future<bool> isSupported() async => false;
 
-  /// Enqueue and starts utterance of the given [text].
+  /// Enqueues and starts utterance of the given [text].
   Future<void> start(String text);
 
   /// Stops and clear all utterances.
@@ -25,9 +25,9 @@ abstract class TtsMethodChannelPlatformInterface {
   /// Pauses current utterance.
   Future<void> pause();
 
-  /// Resumes current utterance.
+  /// Resumes current utterance from the closest "word".
   ///
-  /// Android: Below API 26, utterance will restart. Otherwise, text is resumed from the closest "word".
+  /// Android: Below API 26, utterance will restart.
   Future<void> resume();
 
   /// Sets language for next utterance.
@@ -52,19 +52,19 @@ abstract class TtsMethodChannelPlatformInterface {
   /// [language] is language code (e.g. en-US)
   Future<List<TtsVoice>> getVoicesByLanguage(String language);
 
-  /// Sets tone pitch of next utterance.
+  /// Sets tone pitch of next utterance. Range is likely 0.0 - 2.0.
   ///
-  /// 1.0 is the normal [pitch], lower values lower the tone, greater values increase it.
+  /// 1.0 is the default [pitch], lower values lower the tone, greater values increase it.
   Future<void> setPitch(double pitch);
 
-  /// Sets speak rate of next utterance.
+  /// Sets speak rate of next utterance. Range is likely 0.1 - 10.0.
   ///
-  /// 1.0 is the normal speech [rate], (0.5 is half, 2.0 is twice, ...).
+  /// 1.0 is the default speech [rate], (0.5 is half, 2.0 is twice, ...).
   Future<void> setRate(double rate);
 
-  /// Sets volume of next utterance.
+  /// Sets volume of next utterance. Range is likely 0.0 - 1.0.
   ///
-  /// Volume is from 0 to 1 where 0 is silence, and 1 is the maximum volume (default).
+  /// 1.0 is the default volume.
   Future<void> setVolume(double volume);
 
   /// Disposes Test-to-Speech instance.

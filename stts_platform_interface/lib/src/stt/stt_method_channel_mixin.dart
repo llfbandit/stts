@@ -34,9 +34,9 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   }
 
   @override
-  Future<List<String>> getSupportedLanguages() async {
+  Future<List<String>> getLanguages() async {
     final result = await _methodChannel.invokeMethod<List>(
-      'getSupportedLanguages',
+      'getLanguages',
     );
     return result?.cast<String>() ?? [];
   }
