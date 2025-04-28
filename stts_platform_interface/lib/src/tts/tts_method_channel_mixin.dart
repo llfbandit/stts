@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 
 import 'model/tts_state.dart';
+import 'model/tts_voice.dart';
 import 'tts_platform_interface.dart';
 
 /// An implementation of [TtsPlatform] that uses method channels.
@@ -58,27 +59,35 @@ mixin TtsMethodChannel implements TtsMethodChannelPlatformInterface {
   }
 
   @override
-  Future<void> setVoice(String voiceName) {
-    return _methodChannel.invokeMethod<void>('setLanguage', {
-      'voice': voiceName,
+  Future<void> setVoice(String voiceId) {
+    return _methodChannel.invokeMethod<void>('setVoice', {
+      'voiceId': voiceId,
     });
   }
 
   @override
-  Future<List<String>> getVoices() async {
-    final result = await _methodChannel.invokeMethod<List>(
+  Future<List<TtsVoice>> getVoices() async {
+    final results = await _methodChannel.invokeMethod<List>(
       'getVoices',
     );
-    return result?.cast<String>() ?? [];
+
+    return results
+            ?.map((d) => TtsVoice.fromMap(d as Map))
+            .toList(growable: false) ??
+        [];
   }
 
   @override
-  Future<List<String>> getVoicesByLanguage(String language) async {
-    final result =
+  Future<List<TtsVoice>> getVoicesByLanguage(String language) async {
+    final results =
         await _methodChannel.invokeMethod<List>('getVoicesByLanguage', {
       'language': language,
     });
-    return result?.cast<String>() ?? [];
+
+    return results
+            ?.map((d) => TtsVoice.fromMap(d as Map))
+            .toList(growable: false) ??
+        [];
   }
 
   @override

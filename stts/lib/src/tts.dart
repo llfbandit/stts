@@ -43,10 +43,10 @@ class Tts extends TtsPlatformInterface {
   }
 
   @override
-  Future<List<String>> getVoices() => _safeCall(_tts.getVoices);
+  Future<List<TtsVoice>> getVoices() => _safeCall(_tts.getVoices);
 
   @override
-  Future<List<String>> getVoicesByLanguage(String language) {
+  Future<List<TtsVoice>> getVoicesByLanguage(String language) {
     return _safeCall(() => _tts.getVoicesByLanguage(language));
   }
 

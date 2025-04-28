@@ -2,6 +2,22 @@
 
 Speech-to-Text and Text-to-Speech Flutter plugin.
 
+## Platform Speech-to-Text parity matrix
+| Feature             | Android       | iOS             | web     
+|---------------------|---------------|-----------------|---------
+| permission          | ✔️            |   ✔️           | ✔️     
+| language selection  | ✔️            |   ✔️           |  ✔️    
+
+## Platform Text-to-Speech parity matrix
+| Feature             | Android       | iOS             | web     
+|---------------------|---------------|-----------------|---------
+| pause/resume        | ✔️            |   ✔️           | ✔️     
+| language selection  | ✔️            |   ✔️           |  ✔️    
+| voice selection     | ✔️            |   ✔️           |  ✔️    
+| pitch               | ✔️            |   ✔️           |  ✔️    
+| rate                | ✔️            |  ✔️            |  ✔️    
+| volume              | ✔️           | ✔️              | ✔️     
+
 ## Usage of Speech-to-Text
 ```dart
 import 'package:stts/stts.dart';
@@ -9,12 +25,12 @@ import 'package:stts/stts.dart';
 final stt = Stt();
 
 // Get state changes
-stt.onStateChanged.listen(
+final sub = stt.onStateChanged.listen(
   (speechState) {
     // SpeechState.start/stop
   },
   onError: (err) {
-    // Retrieve errors from here
+    // Retrieve listener errors from here
   },
 );
 
@@ -29,6 +45,7 @@ stt.start();
 // ...optionnaly, abort with stt.stop();
 
 // As always, don't forget to release resources.
+sub.cancel();
 stt.dispose();
 ```
 
@@ -39,12 +56,12 @@ import 'package:stts/stts.dart';
 final tts = Tts();
 
 // Get state changes
-tts.onStateChanged.listen(
+final sub = tts.onStateChanged.listen(
   (ttsState) {
     // TtsState.start/stop/pause
   },
   onError: (err) {
-    // Retrieve errors from here
+    // Retrieve listener errors from here
   },
 );
 
@@ -55,6 +72,7 @@ await tts.start('world!');
 // ...optionnaly, abort with tts.stop();
 
 // As always, don't forget to release resources.
+sub.cancel();
 tts.dispose();
 ```
 

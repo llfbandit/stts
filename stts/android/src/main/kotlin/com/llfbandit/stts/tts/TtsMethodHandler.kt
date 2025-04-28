@@ -13,7 +13,7 @@ class TtsMethodHandler(private val tts: Tts) : MethodCallHandler {
     // Let's stack all calls during this period.
     // This avoids messy code in Tts class to deal with this and also ease dispose/creation multiple times.
     // This code is safe because there's a semaphore on dart side to ensure only one call is made at a time.
-    if (!isInitialized) {
+    if (!isInitialized && call.method != "dispose") {
       pendingCalls.add(Runnable { onSafeCall(call, result) })
 
       tts.create {
@@ -37,7 +37,7 @@ class TtsMethodHandler(private val tts: Tts) : MethodCallHandler {
 
       "start" -> {
         callOrError<String>(call, result, "text", onCall = { text ->
-          tts.start(text, null)
+          tts.start(text)
           result.success(null)
         })
       }
@@ -73,8 +73,8 @@ class TtsMethodHandler(private val tts: Tts) : MethodCallHandler {
       }
 
       "setVoice" -> {
-        callOrError<String>(call, result, "voice", onCall = { voice ->
-          tts.setVoice(voice)
+        callOrError<String>(call, result, "voiceId", onCall = { voiceId ->
+          tts.setVoice(voiceId)
           result.success(null)
         })
       }

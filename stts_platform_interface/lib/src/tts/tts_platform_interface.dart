@@ -1,4 +1,5 @@
 import 'model/tts_state.dart';
+import 'model/tts_voice.dart';
 import 'tts_platform.dart';
 
 abstract class TtsPlatformInterface
@@ -38,16 +39,16 @@ abstract class TtsMethodChannelPlatformInterface {
   /// Returns supported languages (e.g. en-US).
   Future<List<String>> getLanguages();
 
-  /// Sets voice.
-  Future<void> setVoice(String voiceName);
+  /// Sets voice by its ID.
+  Future<void> setVoice(String voiceId);
 
   /// Returns supported voices.
-  Future<List<String>> getVoices();
+  Future<List<TtsVoice>> getVoices();
 
   /// Returns voices by given [language].
   ///
   /// [language] is language code (e.g. en-US)
-  Future<List<String>> getVoicesByLanguage(String language);
+  Future<List<TtsVoice>> getVoicesByLanguage(String language);
 
   /// Sets tone pitch of next utterance.
   ///

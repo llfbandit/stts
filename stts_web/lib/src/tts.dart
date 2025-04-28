@@ -13,7 +13,9 @@ class Tts extends TtsPlatformInterface {
   late final bool _supported;
   StreamController<TtsState>? _stateStreamCtrl;
   TtsState _state = TtsState.stop;
-  var _queuedUtterances = 0;
+  var _utteranceLastPosition = 0;
+  final _utterances = <SpeechSynthesisUtterance>[];
+  var _pauseRequested = false;
 
   Tts() {
     // Sanity check & preload languages.
@@ -34,7 +36,11 @@ class Tts extends TtsPlatformInterface {
 
     final utterance = _addUtterance(text);
 
-    _synth.speak(utterance);
+    if (_pauseRequested) {
+      resume();
+    } else {
+      _synth.speak(utterance);
+    }
   }
 
   @override
@@ -42,7 +48,11 @@ class Tts extends TtsPlatformInterface {
     if (!_isSupported()) return;
 
     _synth.cancel();
-    _queuedUtterances = 0;
+
+    _utterances.clear();
+    _utteranceLastPosition = 0;
+    _pauseRequested = false;
+
     _updateState(TtsState.stop);
   }
 
@@ -50,14 +60,31 @@ class Tts extends TtsPlatformInterface {
   Future<void> pause() async {
     if (!_isSupported()) return;
 
-    _synth.pause();
+    // We don't use pause/resume from SpeechSynthesis because
+    // the utterance is spoken entirely before pausing.
+    _pauseRequested = true;
+    _synth.cancel();
+    _updateState(TtsState.pause);
   }
 
   @override
   Future<void> resume() async {
     if (!_isSupported()) return;
 
-    _synth.resume();
+    _pauseRequested = false;
+    if (_utterances.isEmpty) return;
+
+    // Replay first utterance from last known position
+    if (_utteranceLastPosition != 0) {
+      final utterance = _utterances[0];
+      _utterances[0].text = utterance.text.substring(
+        _utteranceLastPosition.clamp(0, utterance.text.length - 1),
+      );
+    }
+
+    for (var utterance in _utterances) {
+      _synth.speak(utterance);
+    }
   }
 
   @override
@@ -100,11 +127,11 @@ class Tts extends TtsPlatformInterface {
   }
 
   @override
-  Future<void> setVoice(String voiceName) async {
+  Future<void> setVoice(String voiceId) async {
     final voices = _synth.getVoices().toDart;
 
     for (var voice in voices) {
-      if (voice.name == voiceName) {
+      if (voice.name == voiceId) {
         _voice = voice;
         return;
       }
@@ -112,21 +139,24 @@ class Tts extends TtsPlatformInterface {
   }
 
   @override
-  Future<List<String>> getVoices() async {
+  Future<List<TtsVoice>> getVoices() async {
     if (!_isSupported()) return [];
 
     final voices = _synth.getVoices().toDart;
-    return voices.map((voice) => voice.name).toSet().toList(growable: false);
+    return voices
+        .map((voice) => _mapVoice(voice))
+        .toSet()
+        .toList(growable: false);
   }
 
   @override
-  Future<List<String>> getVoicesByLanguage(String language) async {
+  Future<List<TtsVoice>> getVoicesByLanguage(String language) async {
     if (!_isSupported()) return [];
 
     final voices = _synth.getVoices().toDart;
     return voices
         .where((voice) => voice.lang == language)
-        .map((voice) => voice.name)
+        .map((voice) => _mapVoice(voice))
         .toSet()
         .toList(growable: false);
   }
@@ -204,23 +234,35 @@ class Tts extends TtsPlatformInterface {
       _updateState(TtsState.start);
     }.toJS;
 
-    utterance.onpause = (JSAny event) {
-      _updateState(TtsState.pause);
-    }.toJS;
-
-    utterance.onresume = (JSAny event) {
-      _updateState(TtsState.start);
-    }.toJS;
-
     utterance.onend = (JSAny event) {
-      _queuedUtterances--;
-      if (_queuedUtterances == 0) {
+      // this event may be triggered even when canceling.
+      if (_pauseRequested) return;
+
+      _utterances.removeAt(0);
+      if (_utterances.isEmpty) {
         _updateState(TtsState.stop);
       }
     }.toJS;
 
-    _queuedUtterances++;
+    utterance.onboundary = (SpeechSynthesisEvent event) {
+      if (event.name == 'word') {
+        _utteranceLastPosition = event.charIndex;
+      }
+    }.toJS;
+
+    _utterances.add(utterance);
 
     return utterance;
+  }
+
+  TtsVoice _mapVoice(SpeechSynthesisVoice voice) {
+    return TtsVoice(
+      id: voice.name,
+      language: voice.lang,
+      languageInstalled: voice.localService,
+      name: voice.name,
+      networkRequired: !voice.localService,
+      gender: TtsVoiceGender.unspecified,
+    );
   }
 }

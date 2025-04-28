@@ -4,6 +4,7 @@ import android.content.Context
 import android.os.Bundle
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import android.speech.tts.Voice
 import android.util.Log
 import com.llfbandit.stts.tts.model.TtsError
 import com.llfbandit.stts.tts.model.TtsState
@@ -20,6 +21,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
   private var isSupported = false
   private val utterances = ArrayList<UtteranceInfo>()
   private var utteranceLastPosition = 0
+  private var pauseRequested = false
 
   fun create(onResult: () -> Unit) {
     if (tts == null) {
@@ -35,38 +37,43 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     return isSupported
   }
 
-  fun start(text: String, utteranceId: String?) {
+  fun start(text: String) {
     if (!isSupported()) return
 
-    val id = utteranceId ?: UUID.randomUUID().toString()
-    if (utteranceId == null) {
-      utterances.add(UtteranceInfo(id, text))
+    val id = UUID.randomUUID().toString()
+    utterances.add(UtteranceInfo(id, text))
+
+    if (pauseRequested) {
+      resume()
+    } else {
+      speak(text, id)
     }
-
-    val params = Bundle()
-    params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
-
-    tts?.speak(text, TextToSpeech.QUEUE_ADD, params, id)
   }
 
   fun pause() {
     if (!isSupported()) return
 
+    pauseRequested = true
     tts?.stop()
     ttsStateStreamHandler.sendEvent(TtsState.Pause)
   }
 
   fun resume() {
     if (!isSupported()) return
+
+    pauseRequested = false
     if (utterances.isEmpty()) return
 
     // Replay first utterance from last known position
     if (utteranceLastPosition != 0) {
       val info = utterances[0]
-      utterances[0] = UtteranceInfo(info.id, info.text.substring(utteranceLastPosition))
+      utterances[0] = UtteranceInfo(
+        info.id,
+        info.text.substring(utteranceLastPosition.coerceIn(0, info.text.length - 1))
+      )
     }
 
-    utterances.forEach { (id, text) -> start(text, id) }
+    utterances.forEach { (id, text) -> speak(text, id) }
   }
 
   fun stop() {
@@ -75,6 +82,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     tts?.stop()
     utterances.clear()
     utteranceLastPosition = 0
+    pauseRequested = false
 
     ttsStateStreamHandler.sendEvent(TtsState.Stop)
   }
@@ -102,28 +110,28 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     return tts!!.availableLanguages.map { it.toLanguageTag() }
   }
 
-  fun setVoice(voiceName: String) {
+  fun setVoice(voiceId: String) {
     if (!isSupported()) return
 
-    val voice = tts!!.voices.find { it.name == voiceName }
+    val voice = tts!!.voices.find { it.name == voiceId }
 
     if (voice != null) {
       tts!!.setVoice(voice)
     }
   }
 
-  fun getVoices(): List<String> {
+  fun getVoices(): List<Map<String, Any>> {
     if (!isSupported()) return emptyList()
 
-    return tts!!.voices.map { it.name }
+    return tts!!.voices.map { mapVoice(it) }
   }
 
-  fun getVoicesByLanguage(language: String): List<String> {
+  fun getVoicesByLanguage(language: String): List<Map<String, Any>> {
     if (!isSupported()) return emptyList()
 
     return tts!!.voices.filter {
       it.locale.toLanguageTag() == language
-    }.map { it.name }
+    }.map { mapVoice(it) }
   }
 
   fun setPitch(pitch: Float) {
@@ -161,6 +169,13 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     }
 
     onResult()
+  }
+
+  private fun speak(text: String, utteranceId: String) {
+    val params = Bundle()
+    params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
+
+    tts?.speak(text, TextToSpeech.QUEUE_ADD, params, utteranceId)
   }
 
   private val utteranceProgressListener = object : UtteranceProgressListener() {
@@ -206,5 +221,16 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
 
       super.onRangeStart(utteranceId, startAt, endAt, frame)
     }
+  }
+
+  private fun mapVoice(voice: Voice): Map<String, Any> {
+    return mapOf(
+      "id" to voice.name,
+      "language" to voice.locale.toLanguageTag(),
+      "languageInstalled" to !voice.features.contains(TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED),
+      "name" to voice.name,
+      "networkRequired" to voice.isNetworkConnectionRequired,
+      "gender" to "unspecified"
+    )
   }
 }
