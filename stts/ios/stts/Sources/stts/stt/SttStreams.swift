@@ -30,7 +30,7 @@ class SttStateStreamHandler: NSObject, FlutterStreamHandler {
   func sendErrorEvent(_ error: Error) {
     if let eventSink = eventSink {
       DispatchQueue.main.async {
-        eventSink(FlutterError(code: "stts", message: error.localizedDescription, details: nil))
+        eventSink(FlutterError(code: "stt", message: error.localizedDescription, details: nil))
       }
     }
   }
