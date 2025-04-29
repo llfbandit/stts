@@ -63,7 +63,9 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
       utterance.voice = AVSpeechSynthesisVoice(language: language)
     }
     
-    synthesizer?.speak(utterance)
+    DispatchQueue.global(qos: .background).async {
+      self.synthesizer?.speak(utterance)
+    }
   }
   
   func stop() {
@@ -132,6 +134,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   func dispose() {
     stop()
     
+    synthesizer?.delegate = nil
     synthesizer = nil
     resetParams()
   }

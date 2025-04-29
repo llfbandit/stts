@@ -34,7 +34,9 @@ class Stt {
   }
   
   func setLanguage(_ language: String) {
-    currentLocale = Locale(identifier: language)
+    if let language = getLanguages().first(where: { $0 == language }) {
+      currentLocale = Locale(identifier: language)
+    }
   }
   
   func getLanguages() -> [String] {
