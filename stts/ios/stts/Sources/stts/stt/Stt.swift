@@ -29,15 +29,15 @@ class Stt {
     return true
   }
   
-  func getLocale() -> String {
+  func getLanguage() -> String {
     return currentLocale.identifier
   }
   
-  func setLocale(_ languageTag: String) {
-    currentLocale = Locale(identifier: languageTag)
+  func setLanguage(_ language: String) {
+    currentLocale = Locale(identifier: language)
   }
   
-  func getSupportedLocales() -> [String] {
+  func getLanguages() -> [String] {
     var locales = [String]()
     
     let supportedLocales = SFSpeechRecognizer.supportedLocales()

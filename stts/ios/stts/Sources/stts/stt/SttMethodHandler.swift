@@ -19,10 +19,10 @@ class SttMethodHandler {
         }
       }
       
-    case "getLocale":
-      result(stt.getLocale())
+    case "getLanguage":
+      result(stt.getLanguage())
       
-    case "setLocale":
+    case "setLanguage":
       guard let args = call.arguments as? [String: Any] else {
         result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
         return
@@ -32,11 +32,11 @@ class SttMethodHandler {
         return
       }
 
-      stt.setLocale(language)
+      stt.setLanguage(language)
       result(nil)
       
-    case "getSupportedLocales":
-      result(stt.getSupportedLocales())
+    case "getLanguages":
+      result(stt.getLanguages())
       
     case "start":
       do {
