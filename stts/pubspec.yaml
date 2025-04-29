@@ -35,5 +35,7 @@ flutter:
         pluginClass: SttsPlugin
       ios:
         pluginClass: SttsPlugin
+      macos:
+        pluginClass: SttsPlugin
       web:
         default_package: stts_web
