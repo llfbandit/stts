@@ -35,13 +35,17 @@ abstract class SttMethodChannelPlatformInterface {
   /// Gets supported languages by the recognizer (e.g. en-US).
   Future<List<String>> getLanguages();
 
-  /// Starts Speech-to-Text recognizer.
+  /// Starts speech recognition.
+  ///
+  /// Refer to [onStateChanged] for accurate state.
   Future<void> start();
 
-  /// Stops Speech-to-Text recognizer.
+  /// Stops speech recognition.
+  ///
+  /// Refer to [onStateChanged] for accurate state.
   Future<void> stop();
 
-  /// Disposes Speech-to-Text recognizer.
+  /// Disposes speech recognition.
   Future<void> dispose();
 }
 
