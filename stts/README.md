@@ -85,7 +85,7 @@ You can either use one or both engines in your app. So permissions are only requ
 * [Android](https://github.com/llfbandit/stts/blob/master/doc/README_android.md)
 * [iOS](https://github.com/llfbandit/stts/blob/master/doc/README_ios.md)
 * [macOS](https://github.com/llfbandit/stts/blob/master/doc/README_macos.md)
-* [Web](https://github.com/llfbandit/stts/blob/master/doc/README_windows.md)
+* [Web](https://github.com/llfbandit/stts/blob/master/doc/README_web.md)
 
 ## Misc. infos / warnings
 
