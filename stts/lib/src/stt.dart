@@ -48,5 +48,8 @@ class Stt extends SttPlatformInterface {
   }
 
   @override
+  SttAndroid? get android => _stt.android;
+
+  @override
   SttWindows? get windows => _stt.windows;
 }

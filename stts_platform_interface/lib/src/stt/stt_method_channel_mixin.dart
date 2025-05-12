@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'model/stt_state.dart';
@@ -9,6 +10,8 @@ import 'stt_platform_interface.dart';
 mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   /// The method channel used to interact with the native platform.
   final _methodChannel = const MethodChannel('com.llfbandit.stt/methods');
+  _SttAndroidImpl? _android;
+  _SttWindowsImpl? _windows;
 
   @override
   Future<bool> isSupported() async {
@@ -59,10 +62,55 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   }
 
   @override
-  SttWindows? get windows {
-    if (!Platform.isWindows) return null;
+  SttAndroid? get android {
+    if (kIsWeb || !Platform.isAndroid) return null;
 
-    return _SttWindowsImpl(_methodChannel);
+    _android ??= _SttAndroidImpl(_methodChannel);
+
+    return _android;
+  }
+
+  @override
+  SttWindows? get windows {
+    if (kIsWeb || !Platform.isWindows) return null;
+
+    _windows ??= _SttWindowsImpl(_methodChannel);
+
+    return _windows;
+  }
+}
+
+class _SttAndroidImpl implements SttAndroid {
+  _SttAndroidImpl(this._methodChannel) {
+    _methodChannel.setMethodCallHandler(_platformCallHandler);
+  }
+
+  final MethodChannel _methodChannel;
+  void Function(String language, int? errCode)? _onDownloadModelEnd;
+
+  @override
+  Future<void> downloadModel(String language) {
+    return _methodChannel.invokeMethod<void>('downloadModel', {
+      'language': language,
+    });
+  }
+
+  @override
+  void onDownloadModelEnd(
+    void Function(String language, int? errCode)? callback,
+  ) {
+    _onDownloadModelEnd = callback;
+  }
+
+  Future<dynamic> _platformCallHandler(MethodCall call) async {
+    switch (call.method) {
+      case "onDownloadModelEnd":
+        if (_onDownloadModelEnd case final cb?) {
+          final language = call.arguments['language'];
+          final error = call.arguments['error'];
+          cb(language, error);
+        }
+    }
   }
 }
 

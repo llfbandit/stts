@@ -54,7 +54,7 @@ class SttsPlugin : FlutterPlugin, ActivityAware {
     stt = Stt(binding.applicationContext, sttStateStreamHandler, sttResultStreamHandler)
 
     sttMethodChannel = MethodChannel(messenger, STT_METHODS_CHANNEL)
-    sttMethodChannel.setMethodCallHandler(SttMethodHandler(stt, sttPermissionManager))
+    sttMethodChannel.setMethodCallHandler(SttMethodHandler(stt, sttPermissionManager, sttMethodChannel))
 
     // TTS
     ttsEventStateChannel = EventChannel(messenger, TTS_EVENTS_STATE_CHANNEL)

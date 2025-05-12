@@ -48,10 +48,33 @@ abstract class SttMethodChannelPlatformInterface {
   /// Disposes speech recognition.
   Future<void> dispose();
 
+  /// Android platform specific methods.
+  ///
+  /// Returns [null] when not on Android platform.
+  SttAndroid? get android;
+
   /// Windows platform specific methods.
   ///
   /// Returns [null] when not on Windows platform.
   SttWindows? get windows;
+}
+
+/// Android platform specific methods.
+abstract class SttAndroid {
+  /// Download model for given [language] (e.g. en-US).
+  ///
+  /// This might trigger user interaction to approve the download.
+  ///
+  /// Useful for offline usage. API 34+.
+  Future<void> downloadModel(String language);
+
+  /// Callback for [downloadModel] method when download finished.
+  ///
+  /// [errCode] is null on success. Otherwise check ERROR_* constants.
+  /// https://developer.android.com/reference/android/speech/SpeechRecognizer#constants_1
+  void onDownloadModelEnd(
+    void Function(String language, int? errCode)? callback,
+  );
 }
 
 /// Windows platform specific methods.
@@ -61,10 +84,8 @@ abstract class SttWindows {
   /// By default, speech recognition can be very inaccurate.
   /// This dialog helps to improve recognition with your own voice.
   ///
-  /// [context]: Current building context to attach the dialog box.
-  ///
   /// [trainingTexts]: Custom training sentences.
-  /// If null, system will propose automatically some texts.
+  /// If null, system will propose automatically training texts.
   Future<void> showTrainingUI([List<String>? trainingTexts]);
 }
 

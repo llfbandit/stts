@@ -37,6 +37,13 @@ class _SttPageState extends State<SttPage> {
       }
     });
 
+    // _stt.android?.onDownloadModelEnd(
+    //   (language, errCode) {
+    //     debugPrint('Language DL: $language, error: $errCode');
+    //   },
+    // );
+    // _stt.android?.downloadModel('nb-NO');
+
     _stateSubscription = _stt.onStateChanged.listen(
       (sttState) {
         setState(() => _started = sttState == SttState.start);

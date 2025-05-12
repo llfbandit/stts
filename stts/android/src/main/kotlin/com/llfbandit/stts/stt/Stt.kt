@@ -3,6 +3,9 @@ package com.llfbandit.stts.stt
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import android.speech.ModelDownloadListener
+import android.speech.RecognitionSupport
+import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
@@ -10,6 +13,7 @@ import com.llfbandit.stts.stt.model.SttState
 import com.llfbandit.stts.stt.stream.SttResultStreamHandler
 import com.llfbandit.stts.stt.stream.SttStateStreamHandler
 import java.util.Locale
+import java.util.concurrent.Executors
 
 class Stt(
   private val context: Context,
@@ -74,6 +78,68 @@ class Stt(
     speechRecognizer?.setRecognitionListener(null)
     speechRecognizer?.cancel()
     stateStreamHandler.sendEvent(SttState.Stop)
+  }
+
+  fun downloadModel(language: String, onEnd: (errCode: Int?) -> Unit) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+      Log.d(logTag, "Device API too low: ${Build.VERSION.SDK_INT} vs. ${Build.VERSION_CODES.UPSIDE_DOWN_CAKE}.")
+      return
+    }
+
+    val result = SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
+    if (!result) {
+      Log.d(logTag, "On device speech recognition is not supported.")
+      return
+    }
+
+    val recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
+
+    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+
+    // Check if language is already installed before triggering UI.
+    recognizer.checkRecognitionSupport(
+      intent, Executors.newSingleThreadExecutor(), object :
+        RecognitionSupportCallback {
+        override fun onSupportResult(recognitionSupport: RecognitionSupport) {
+          if (recognitionSupport.installedOnDeviceLanguages.contains(language)) {
+            onEnd(null)
+            recognizer.destroy()
+            return
+          }
+
+          intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language)
+
+          recognizer.triggerModelDownload(
+            intent,
+            Executors.newSingleThreadExecutor(),
+            object : ModelDownloadListener {
+              override fun onProgress(progress: Int) {}
+              override fun onScheduled() {
+                Log.d(logTag, "Model download has been scheduled... We won't receive any other event.")
+                onEnd(null)
+                recognizer.destroy()
+              }
+
+              override fun onSuccess() {
+                onEnd(null)
+                recognizer.destroy()
+              }
+
+              override fun onError(error: Int) {
+                Log.e(logTag, "Error when downloading model. SpeechRecognizer.RecognitionError code: $error")
+                onEnd(error)
+                recognizer.destroy()
+              }
+            },
+          )
+        }
+
+        override fun onError(error: Int) {
+          onEnd(error)
+          recognizer.destroy()
+        }
+      }
+    )
   }
 
   fun dispose() {
