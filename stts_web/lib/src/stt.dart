@@ -164,4 +164,7 @@ class Stt extends SttPlatformInterface {
 
     _updateResult(recognitionResult.item(0).transcript);
   }
+
+  @override
+  SttWindows? get windows => null;
 }

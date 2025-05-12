@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:stts/stts.dart';
 
@@ -100,6 +101,14 @@ class _SttPageState extends State<SttPage> {
               ],
             ),
             Expanded(child: Text(_text)),
+            if (defaultTargetPlatform == TargetPlatform.windows) ...[
+              TextButton(
+                onPressed: _started
+                    ? null
+                    : () => _stt.windows?.showTrainingUI(['Bonjour']),
+                child: Text('Show training UI'),
+              ),
+            ],
             Text(_error ?? ''),
           ],
         ),

@@ -46,4 +46,7 @@ class Stt extends SttPlatformInterface {
       _semaphore.release();
     }
   }
+
+  @override
+  SttWindows? get windows => _stt.windows;
 }

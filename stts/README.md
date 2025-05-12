@@ -1,24 +1,24 @@
 # stts
 
-Speech-to-Text and Text-to-Speech Flutter plugin.
+Speech-to-Text (STT) and Text-to-Speech (TTS) Flutter plugin.
 
 No dependency. All implementations use what the platform provides.
 
 ## Platform Speech-to-Text parity matrix
-| Feature             | Android       | iOS          | macOS        | web     
-|---------------------|---------------|--------------|--------------|---------
-| permission          | ✔️            |   ✔️        | ✔️           | ✔️     
-| language selection  | ✔️            |   ✔️        | ✔️           | ✔️    
+| Feature             | Android       | iOS          | macOS        | web      | Windows     
+|---------------------|---------------|--------------|--------------|----------|---------
+| permission          | ✔️            |   ✔️        | ✔️           | ✔️      |     
+| language selection  | ✔️            |   ✔️        | ✔️           | ✔️      | ✔️    
 
 ## Platform Text-to-Speech parity matrix
-| Feature             | Android       | iOS          | macOS           | web     
-|---------------------|---------------|--------------|-----------------|---------
-| pause/resume        | ✔️            | ✔️          | ✔️             | ✔️     
-| language selection  | ✔️            | ✔️          | ✔️             | ✔️    
-| voice selection     | ✔️            | ✔️          | ✔️             | ✔️    
-| pitch               | ✔️            | ✔️          | ✔️             | ✔️    
-| rate                | ✔️            | ✔️          | ✔️             | ✔️    
-| volume              | ✔️            | ✔️          | ✔️             | ✔️     
+| Feature             | Android       | iOS          | macOS           | web       | Windows     
+|---------------------|---------------|--------------|-----------------|-----------|---------
+| pause/resume        | ✔️            | ✔️          | ✔️             | ✔️        | ✔️     
+| language selection  | ✔️            | ✔️          | ✔️             | ✔️        | ✔️    
+| voice selection     | ✔️            | ✔️          | ✔️             | ✔️        | ✔️    
+| pitch               | ✔️            | ✔️          | ✔️             | ✔️        | ✔️    
+| rate                | ✔️            | ✔️          | ✔️             | ✔️        | ✔️    
+| volume              | ✔️            | ✔️          | ✔️             | ✔️        | ✔️     
 
 ## Usage of Speech-to-Text
 ```dart
@@ -28,23 +28,15 @@ final stt = Stt();
 
 // Get state changes
 final sub = stt.onStateChanged.listen(
-  (speechState) {
-    // SttState.start/stop
-  },
-  onError: (err) {
-    // Retrieve listener errors from here
-  },
+  (speechState) { /* SttState.start/stop */ },
+  onError: (err) {/* Retrieve listener errors from here */ },
 );
 
 // Get intermediate and final results.
-stt.onResultChanged.listen((result) {
-  // The current result String
-});
+stt.onResultChanged.listen((result) { /* The current result String */ });
 
 // Start speech recognition.
-stt.start();
-
-// ...optionnaly, abort with stt.stop();
+stt.start(); // ...optionnaly, abort with stt.stop();
 
 // As always, don't forget to release resources.
 sub.cancel();
@@ -59,19 +51,13 @@ final tts = Tts();
 
 // Get state changes
 final sub = tts.onStateChanged.listen(
-  (ttsState) {
-    // TtsState.start/stop/pause
-  },
-  onError: (err) {
-    // Retrieve listener errors from here
-  },
+  (ttsState) { /* TtsState.start/stop/pause */ },
+  onError: (err) { /* Retrieve listener errors from here */ },
 );
 
 // Add utterance. Texts are queued.
 await tts.start('Hello');
-await tts.start('world!');
-
-// ...optionnaly, abort with tts.stop();
+await tts.start('world!'); // ...optionnaly, abort with tts.stop();
 
 // As always, don't forget to release resources.
 sub.cancel();
@@ -86,9 +72,10 @@ You can either use one or both engines in your app. So permissions are only requ
 * [iOS](https://github.com/llfbandit/stts/blob/master/doc/README_ios.md)
 * [macOS](https://github.com/llfbandit/stts/blob/master/doc/README_macos.md)
 * [Web](https://github.com/llfbandit/stts/blob/master/doc/README_web.md)
+* [Windows](https://github.com/llfbandit/stts/blob/master/doc/README_windows.md)
 
 ## Misc. infos / warnings
 
 - Speech recognition is time limited. You can't use it to fill very long texts in a single session.
 - Speech recognition will auto stop, when detecting silence.
-- Where possible, offline recognition is queried.
+- This plugin is offline first, this can't guaranteed.

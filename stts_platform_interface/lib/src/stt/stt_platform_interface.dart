@@ -47,6 +47,25 @@ abstract class SttMethodChannelPlatformInterface {
 
   /// Disposes speech recognition.
   Future<void> dispose();
+
+  /// Windows platform specific methods.
+  ///
+  /// Returns [null] when not on Windows platform.
+  SttWindows? get windows;
+}
+
+/// Windows platform specific methods.
+abstract class SttWindows {
+  /// Shows system training UI dialog.
+  ///
+  /// By default, speech recognition can be very inaccurate.
+  /// This dialog helps to improve recognition with your own voice.
+  ///
+  /// [context]: Current building context to attach the dialog box.
+  ///
+  /// [trainingTexts]: Custom training sentences.
+  /// If null, system will propose automatically some texts.
+  Future<void> showTrainingUI([List<String>? trainingTexts]);
 }
 
 abstract class SttEventChannelPlatformInterface {

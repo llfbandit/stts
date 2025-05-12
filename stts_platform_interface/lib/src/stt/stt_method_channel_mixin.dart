@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 
 import 'model/stt_state.dart';
@@ -54,6 +56,28 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   @override
   Future<void> dispose() {
     return _methodChannel.invokeMethod<void>('dispose');
+  }
+
+  @override
+  SttWindows? get windows {
+    if (!Platform.isWindows) return null;
+
+    return _SttWindowsImpl(_methodChannel);
+  }
+}
+
+class _SttWindowsImpl implements SttWindows {
+  _SttWindowsImpl(this._methodChannel);
+
+  final MethodChannel _methodChannel;
+
+  @override
+  Future<void> showTrainingUI([
+    List<String>? trainingTexts,
+  ]) {
+    return _methodChannel.invokeMethod<void>('showTrainingUI', {
+      'trainingTexts': trainingTexts,
+    });
   }
 }
 

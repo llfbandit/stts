@@ -1,11 +1,11 @@
 name: stts
 description: "Speech-to-Text and Text-to-Speech plugin. Offline first."
-version: 0.0.1
+version: 1.0.0
 homepage: https://github.com/llfbandit/stts
 
 topics:
   - speech-to-text
-  - stt
+  - speech-recognition
   - text-to-speech
   - tts
   - voice-synthesizer
@@ -39,3 +39,5 @@ flutter:
         pluginClass: SttsPlugin
       web:
         default_package: stts_web
+      windows:
+        pluginClass: SttsPluginCApi
