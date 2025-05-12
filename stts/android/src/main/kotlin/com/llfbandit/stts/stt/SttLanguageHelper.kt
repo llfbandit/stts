@@ -12,7 +12,7 @@ import android.speech.SpeechRecognizer.createOnDeviceSpeechRecognizer
 import java.util.concurrent.Executors
 
 fun interface SupportedLanguagesResultCallback {
-  fun onResult(locales: ArrayList<String>)
+  fun onResult(locales: List<String>)
 }
 
 class SpeechLanguageHelper {
@@ -24,13 +24,13 @@ class SpeechLanguageHelper {
       recognizer.checkRecognitionSupport(
         recognizerIntent, Executors.newSingleThreadExecutor(), object : RecognitionSupportCallback {
           override fun onSupportResult(recognitionSupport: RecognitionSupport) {
-            val result = ArrayList<String>()
+            val result = HashSet<String>()
             result.addAll(recognitionSupport.installedOnDeviceLanguages)
             result.addAll(recognitionSupport.onlineLanguages)
             result.addAll(recognitionSupport.supportedOnDeviceLanguages)
 
             recognizer.destroy()
-            resultCallback.onResult(result)
+            resultCallback.onResult(result.toList())
           }
 
           override fun onError(error: Int) {
