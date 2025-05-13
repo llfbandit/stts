@@ -1,5 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'model/stt_recognition.dart';
 import 'model/stt_state.dart';
 import 'stt_platform.dart';
 
@@ -94,5 +95,5 @@ abstract class SttEventChannelPlatformInterface {
   Stream<SttState> get onStateChanged;
 
   /// Stream for receiving Speech-to-Text results.
-  Stream<String> get onResultChanged;
+  Stream<SttRecognition> get onResultChanged;
 }

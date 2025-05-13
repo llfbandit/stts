@@ -13,20 +13,36 @@ class SttRecognitionListener(
   private val resultStreamHandler: SttResultStreamHandler,
   private val onStop: () -> Unit,
 ): RecognitionListener {
+  private var currentResult: String = ""
+
   override fun onReadyForSpeech(params: Bundle?) = stateStreamHandler.sendEvent(SttState.Start)
 
-  override fun onEndOfSpeech() = onStop()
+  override fun onEndOfSpeech() {
+    if (currentResult.isNotEmpty()) {
+      resultStreamHandler.sendEvent(currentResult, true)
+      currentResult = ""
+    }
 
-  override fun onResults(results: Bundle?) = doOnResults(results)
+    onStop()
+  }
 
-  override fun onPartialResults(partialResults: Bundle?) = doOnResults(partialResults)
+  override fun onResults(results: Bundle?) {
+    doOnResults(results, true)
+    currentResult = ""
+  }
 
-  private fun doOnResults(results: Bundle?) {
+  override fun onPartialResults(partialResults: Bundle?) = doOnResults(partialResults, false)
+
+  private fun doOnResults(results: Bundle?, isFinal: Boolean) {
     val data = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
 
     if (!data.isNullOrEmpty()) {
       // The first element is the most likely candidate
-      resultStreamHandler.sendEvent(data[0])
+      resultStreamHandler.sendEvent(data[0], isFinal)
+
+      if (!isFinal) {
+        currentResult = data[0]
+      }
     }
   }
 

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'model/stt_recognition.dart';
 import 'model/stt_state.dart';
 import 'stt_platform_interface.dart';
 
@@ -144,7 +145,11 @@ mixin SttEventChannel implements SttEventChannelPlatformInterface {
           );
 
   @override
-  Stream<String> get onResultChanged => _resultEventChannel
-      .receiveBroadcastStream()
-      .map<String>((dynamic result) => result as String);
+  Stream<SttRecognition> get onResultChanged =>
+      _resultEventChannel.receiveBroadcastStream().map<SttRecognition>(
+            (dynamic result) => SttRecognition(
+              result['text'],
+              result['isFinal'],
+            ),
+          );
 }

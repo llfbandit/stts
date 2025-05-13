@@ -19,9 +19,11 @@ class SttResultStreamHandler: EventChannel.StreamHandler {
     eventSink = null
   }
 
-  fun sendEvent(result: String) {
+  fun sendEvent(text: String, isFinal: Boolean) {
     uiThreadHandler.post {
-      eventSink?.success(result)
+      eventSink?.success(
+        mapOf("text" to text, "isFinal" to isFinal)
+      )
     }
   }
 }

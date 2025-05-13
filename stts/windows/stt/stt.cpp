@@ -29,7 +29,10 @@ namespace stts {
                 event.RecoResult()->GetText((ULONG)SP_GETWHOLEPHRASE, (ULONG)SP_GETWHOLEPHRASE, TRUE, &dstrText, NULL);
 
                 auto text = Utf8FromUtf16(dstrText);
-                pThis->m_resultEventHandler->Success(flutter::EncodableValue(text));
+                pThis->m_resultEventHandler->Success(flutter::EncodableMap({
+					{flutter::EncodableValue("text"), flutter::EncodableValue(text)},
+					{flutter::EncodableValue("isFinal"), flutter::EncodableValue(SPEI_RECOGNITION == event.eEventId)}
+                }));
 
                 CoTaskMemFree(dstrText);
             }

@@ -17,13 +17,17 @@ class _SttPageState extends State<SttPage> {
   String _text = '';
   String? _error;
   StreamSubscription<SttState>? _stateSubscription;
-  StreamSubscription<String>? _resultSubscription;
+  StreamSubscription<SttRecognition>? _resultSubscription;
   bool _started = false;
   final _lang = 'fr-FR';
 
   @override
   void initState() {
     super.initState();
+
+    _stt.isSupported().then((supported) {
+      debugPrint('Supported: $supported');
+    });
 
     _stt.getLanguages().then((loc) {
       debugPrint('Supported languages: $loc');
@@ -55,8 +59,8 @@ class _SttPageState extends State<SttPage> {
     );
 
     _resultSubscription = _stt.onResultChanged.listen((result) {
-      debugPrint(result);
-      setState(() => _text = result);
+      debugPrint('${result.text} (isFinal: ${result.isFinal})');
+      setState(() => _text = result.text);
     });
   }
 

@@ -115,15 +115,15 @@ class Stt {
       
       if let result = result {
         let transcription = result.bestTranscription
-        
-        if !transcription.formattedString.isEmpty {
-          self.resultEventHandler.sendEvent(transcription.formattedString)
-        }
-        
+
         // isFinal seems to be always false, stops with confidence instead.
         // Partial results are always with confidence == 0.
         let confidence = transcription.segments[0].confidence
         isFinal = result.isFinal || confidence > 0.0 ? true : false
+        
+        if !transcription.formattedString.isEmpty {
+          self.resultEventHandler.sendEvent(transcription.formattedString, isFinal)
+        }
       } else if let error = error {
         self.stateEventHandler.sendErrorEvent(error)
       }

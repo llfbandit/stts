@@ -36,7 +36,7 @@ class Stt extends SttPlatformInterface {
   Stream<SttState> get onStateChanged => _stt.onStateChanged;
 
   @override
-  Stream<String> get onResultChanged => _stt.onResultChanged;
+  Stream<SttRecognition> get onResultChanged => _stt.onResultChanged;
 
   Future<T> _safeCall<T>(Future<T> Function() fn) async {
     await _semaphore.acquire();

@@ -52,10 +52,10 @@ class SttResultStreamHandler: NSObject, FlutterStreamHandler {
     return nil
   }
   
-  func sendEvent(_ result: String) {
+  func sendEvent(_ result: String, _ isFinal: Bool) {
     if let eventSink = eventSink {
       DispatchQueue.main.async {
-        eventSink(result)
+        eventSink(["text": result, "isFinal": isFinal])
       }
     }
   }
