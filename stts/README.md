@@ -78,4 +78,4 @@ You can either use one or both engines in your app. So permissions are only requ
 
 - Speech recognition is time limited. You can't use it to fill very long texts in a single session.
 - Speech recognition will auto stop, when detecting silence.
-- This plugin is offline first, this can't guaranteed.
+- This plugin is offline first, this can't be guaranteed.
