@@ -20,6 +20,7 @@ abstract class SttPlatformInterface extends PlatformInterface
   static SttPlatformInterface instance = SttPlatform();
 }
 
+/// Speech-to-Text method channel platform interface
 abstract class SttMethodChannelPlatformInterface {
   /// Checks if the platform and service is supported.
   Future<bool> isSupported() async => false;
@@ -90,6 +91,7 @@ abstract class SttWindows {
   Future<void> showTrainingUI([List<String>? trainingTexts]);
 }
 
+/// Speech-to-Text event channel platform interface
 abstract class SttEventChannelPlatformInterface {
   /// Stream for receiving Speech-to-Text states and errors.
   Stream<SttState> get onStateChanged;

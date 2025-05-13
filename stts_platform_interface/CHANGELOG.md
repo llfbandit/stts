@@ -1,3 +1,6 @@
+## 0.9.2
+* fix: pub.dev score.
+
 ## 0.9.1
 * fix: io import breaking WASM compatibility.
 

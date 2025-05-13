@@ -2,6 +2,7 @@ import 'model/tts_state.dart';
 import 'model/tts_voice.dart';
 import 'tts_platform.dart';
 
+/// Text-to-Speech platform interface
 abstract class TtsPlatformInterface
     implements
         TtsMethodChannelPlatformInterface,
@@ -12,6 +13,7 @@ abstract class TtsPlatformInterface
   static TtsPlatformInterface instance = TtsPlatform();
 }
 
+/// Text-to-Speech method channel platform interface
 abstract class TtsMethodChannelPlatformInterface {
   /// Checks if the platform and service is supported.
   Future<bool> isSupported() async => false;
@@ -79,6 +81,7 @@ abstract class TtsMethodChannelPlatformInterface {
   Future<void> dispose();
 }
 
+/// Text-to-Speech event channel platform interface
 abstract class TtsEventChannelPlatformInterface {
   /// Stream for receiving Text-to-Speech states and errors.
   Stream<TtsState> get onStateChanged;
