@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -64,7 +62,7 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
 
   @override
   SttAndroid? get android {
-    if (kIsWeb || !Platform.isAndroid) return null;
+    if (kIsWeb || TargetPlatform.android != defaultTargetPlatform) return null;
 
     _android ??= _SttAndroidImpl(_methodChannel);
 
@@ -73,7 +71,7 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
 
   @override
   SttWindows? get windows {
-    if (kIsWeb || !Platform.isWindows) return null;
+    if (kIsWeb || TargetPlatform.windows != defaultTargetPlatform) return null;
 
     _windows ??= _SttWindowsImpl(_methodChannel);
 
