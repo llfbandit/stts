@@ -111,6 +111,13 @@ class _SttAndroidImpl implements SttAndroid {
         }
     }
   }
+
+  @override
+  Future<void> muteSystemSounds(bool mute) {
+    return _methodChannel.invokeMethod<void>('muteSystemSounds', {
+      'mute': mute,
+    });
+  }
 }
 
 class _SttWindowsImpl implements SttWindows {

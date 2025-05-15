@@ -67,13 +67,21 @@ class SttRecognitionListener(
       else -> SttRecognitionError(error, "unknown")
     }
 
-    if (recognitionError.code == SpeechRecognizer.ERROR_NO_MATCH) {
-      // no_match is not processed as error, just trigger stop event
-      // This error occurs when nothing has been detected, it may be a silence also.
-      onStop()
-    } else {
-      stateStreamHandler.sendErrorEvent(recognitionError)
-      onStop()
+    when (recognitionError.code) {
+      SpeechRecognizer.ERROR_NO_MATCH -> {
+        // no_match is not processed as error, just trigger stop event
+        // This error occurs when nothing has been detected, it may be a silence also.
+        onStop()
+      }
+      SpeechRecognizer.ERROR_CLIENT -> {
+        // client is not processed as error, just trigger stop event
+        // This error occurs when nothing has been detected, user cancelled recognition.
+        onStop()
+      }
+      else -> {
+        stateStreamHandler.sendErrorEvent(recognitionError)
+        onStop()
+      }
     }
   }
 

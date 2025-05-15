@@ -48,6 +48,8 @@ class _SttPageState extends State<SttPage> {
     // );
     // _stt.android?.downloadModel('nb-NO');
 
+    // _stt.android?.muteSystemSounds(true);
+
     _stateSubscription = _stt.onStateChanged.listen(
       (sttState) {
         setState(() => _started = sttState == SttState.start);

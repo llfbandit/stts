@@ -77,6 +77,9 @@ abstract class SttAndroid {
   void onDownloadModelEnd(
     void Function(String language, int? errCode)? callback,
   );
+
+  /// Mute default system beep sounds when starting and stopping speech recognition.
+  Future<void> muteSystemSounds(bool mute);
 }
 
 /// Windows platform specific methods.

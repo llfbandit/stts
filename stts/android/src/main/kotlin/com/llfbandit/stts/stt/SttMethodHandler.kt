@@ -63,6 +63,14 @@ class SttMethodHandler(
       result.success(null)
     }
 
+    "muteSystemSounds" -> {
+      val mute = call.argument<Boolean>("mute")
+      if (mute!=null) {
+        stt.muteSystemSounds(mute)
+      }
+      result.success(null)
+    }
+
     "dispose" -> {
       stt.dispose()
       result.success(null)

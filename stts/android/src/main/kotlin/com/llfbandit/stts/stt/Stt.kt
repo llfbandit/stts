@@ -2,6 +2,7 @@ package com.llfbandit.stts.stt
 
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.os.Build
 import android.speech.ModelDownloadListener
 import android.speech.RecognitionSupport
@@ -12,6 +13,10 @@ import android.util.Log
 import com.llfbandit.stts.stt.model.SttState
 import com.llfbandit.stts.stt.stream.SttResultStreamHandler
 import com.llfbandit.stts.stt.stream.SttStateStreamHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.concurrent.Executors
 
@@ -23,6 +28,8 @@ class Stt(
   private val logTag = "Stt"
   private var currentLocale = Locale.getDefault()
   private var speechRecognizer: SpeechRecognizer? = null
+  private var muteSystemSounds: Boolean = false
+  private var originalRingerMode: Int = AudioManager.RINGER_MODE_NORMAL
 
   fun isSupported(): Boolean {
     val result = SpeechRecognizer.isRecognitionAvailable(context)
@@ -54,14 +61,23 @@ class Stt(
 
     if (speechRecognizer == null) {
       speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+
+      val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+      originalRingerMode = audioManager.ringerMode
+
+      speechRecognizer?.setRecognitionListener(
+        SttRecognitionListener(
+          stateStreamHandler,
+          resultStreamHandler,
+          onStop = { onStop() })
+      )
     }
 
-    speechRecognizer?.setRecognitionListener(
-      SttRecognitionListener(stateStreamHandler, resultStreamHandler, onStop = { stop() })
-    )
-
     val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-      putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+      putExtra(
+        RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
+      )
       putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
       putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLocale.toLanguageTag())
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -69,20 +85,24 @@ class Stt(
       }
     }
 
+    onStart()
+
     speechRecognizer?.startListening(recognizerIntent)
   }
 
   fun stop() {
     if (!isSupported()) return
 
-    speechRecognizer?.setRecognitionListener(null)
     speechRecognizer?.cancel()
     stateStreamHandler.sendEvent(SttState.Stop)
   }
 
   fun downloadModel(language: String, onEnd: (errCode: Int?) -> Unit) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-      Log.d(logTag, "Device API too low: ${Build.VERSION.SDK_INT} vs. ${Build.VERSION_CODES.UPSIDE_DOWN_CAKE}.")
+      Log.d(
+        logTag,
+        "Device API too low: ${Build.VERSION.SDK_INT} vs. ${Build.VERSION_CODES.UPSIDE_DOWN_CAKE}."
+      )
       return
     }
 
@@ -115,7 +135,10 @@ class Stt(
             object : ModelDownloadListener {
               override fun onProgress(progress: Int) {}
               override fun onScheduled() {
-                Log.d(logTag, "Model download has been scheduled... We won't receive any other event.")
+                Log.d(
+                  logTag,
+                  "Model download has been scheduled... We won't receive any other event."
+                )
                 onEnd(null)
                 recognizer.destroy()
               }
@@ -126,7 +149,10 @@ class Stt(
               }
 
               override fun onError(error: Int) {
-                Log.e(logTag, "Error when downloading model. SpeechRecognizer.RecognitionError code: $error")
+                Log.e(
+                  logTag,
+                  "Error when downloading model. SpeechRecognizer.RecognitionError code: $error"
+                )
                 onEnd(error)
                 recognizer.destroy()
               }
@@ -142,11 +168,37 @@ class Stt(
     )
   }
 
+  fun muteSystemSounds(mute: Boolean) {
+    muteSystemSounds = mute
+  }
+
   fun dispose() {
     stop()
 
     speechRecognizer?.setRecognitionListener(null)
     speechRecognizer?.destroy()
     speechRecognizer = null
+
+    muteSystemSounds = false
+  }
+
+  private fun onStart() {
+    if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL) {
+      val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+      audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
+    }
+  }
+
+  private fun onStop() {
+    stop()
+
+    if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL) {
+      val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+
+      CoroutineScope(Dispatchers.Default).launch {
+        delay(800)
+        audioManager.ringerMode = originalRingerMode
+      }
+    }
   }
 }
