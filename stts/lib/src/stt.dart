@@ -24,7 +24,9 @@ class Stt extends SttPlatformInterface {
   Future<List<String>> getLanguages() => _safeCall(_stt.getLanguages);
 
   @override
-  Future<void> start() => _safeCall(_stt.start);
+  Future<void> start([SttRecognitionOptions? options]) {
+    return _safeCall(() => _stt.start(options));
+  }
 
   @override
   Future<void> stop() => _safeCall(_stt.stop);

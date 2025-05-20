@@ -2,6 +2,7 @@ package com.llfbandit.stts.stt
 
 import android.os.Handler
 import android.os.Looper
+import com.llfbandit.stts.stt.model.SttRecognitionOptions
 import com.llfbandit.stts.stt.permission.SttPermissionManager
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -39,7 +40,10 @@ class SttMethodHandler(
     }
 
     "start" -> {
-      stt.start()
+      val options = call.argument<Map<String, Any>>("options")
+      if (options != null) {
+        stt.start(SttRecognitionOptions.fromMap(options))
+      }
       result.success(null)
     }
 
@@ -48,14 +52,14 @@ class SttMethodHandler(
       result.success(null)
     }
 
-    "downloadModel" -> {
+    "android.downloadModel" -> {
       val language = call.argument<String>("language")
       if (language != null) {
         stt.downloadModel(
           language,
           onEnd = {
             Handler(Looper.getMainLooper()).post {
-              methodChannel.invokeMethod("onDownloadModelEnd", mapOf("language" to language, "error" to it))
+              methodChannel.invokeMethod("android.onDownloadModelEnd", mapOf("language" to language, "error" to it))
             }
           },
         )
@@ -63,7 +67,7 @@ class SttMethodHandler(
       result.success(null)
     }
 
-    "muteSystemSounds" -> {
+    "android.muteSystemSounds" -> {
       val mute = call.argument<Boolean>("mute")
       if (mute!=null) {
         stt.muteSystemSounds(mute)

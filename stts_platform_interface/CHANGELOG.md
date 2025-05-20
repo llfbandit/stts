@@ -1,3 +1,6 @@
+## 0.9.3
+* feat(STT): Add recognition options.
+
 ## 0.9.2
 * fix: pub.dev score.
 

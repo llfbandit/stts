@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'model/stt_recognition.dart';
+import 'model/stt_recognition_options.dart';
 import 'model/stt_state.dart';
 import 'stt_platform_interface.dart';
 
@@ -46,8 +47,10 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   }
 
   @override
-  Future<void> start() {
-    return _methodChannel.invokeMethod<void>('start');
+  Future<void> start([SttRecognitionOptions? options]) {
+    return _methodChannel.invokeMethod<void>('start', {
+      'options': (options ?? SttRecognitionOptions()).toMap(),
+    });
   }
 
   @override
@@ -89,7 +92,7 @@ class _SttAndroidImpl implements SttAndroid {
 
   @override
   Future<void> downloadModel(String language) {
-    return _methodChannel.invokeMethod<void>('downloadModel', {
+    return _methodChannel.invokeMethod<void>('android.downloadModel', {
       'language': language,
     });
   }
@@ -103,7 +106,7 @@ class _SttAndroidImpl implements SttAndroid {
 
   Future<dynamic> _platformCallHandler(MethodCall call) async {
     switch (call.method) {
-      case "onDownloadModelEnd":
+      case "android.onDownloadModelEnd":
         if (_onDownloadModelEnd case final cb?) {
           final language = call.arguments['language'];
           final error = call.arguments['error'];
@@ -114,7 +117,7 @@ class _SttAndroidImpl implements SttAndroid {
 
   @override
   Future<void> muteSystemSounds(bool mute) {
-    return _methodChannel.invokeMethod<void>('muteSystemSounds', {
+    return _methodChannel.invokeMethod<void>('android.muteSystemSounds', {
       'mute': mute,
     });
   }
@@ -129,7 +132,7 @@ class _SttWindowsImpl implements SttWindows {
   Future<void> showTrainingUI([
     List<String>? trainingTexts,
   ]) {
-    return _methodChannel.invokeMethod<void>('showTrainingUI', {
+    return _methodChannel.invokeMethod<void>('windows.showTrainingUI', {
       'trainingTexts': trainingTexts,
     });
   }

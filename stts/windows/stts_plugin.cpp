@@ -121,7 +121,7 @@ namespace stts {
 			mStt->Stop();
 			result->Success(flutter::EncodableValue(NULL));
 		}
-		else if (method.compare("showTrainingUI") == 0) {
+		else if (method.compare("windows.showTrainingUI") == 0) {
 			const auto args = method_call.arguments();
 			const auto* mapArgs = std::get_if<flutter::EncodableMap>(args);
 

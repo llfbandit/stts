@@ -39,8 +39,17 @@ class SttMethodHandler {
       result(stt.getLanguages())
       
     case "start":
+      guard let args = call.arguments as? [String: Any] else {
+        result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
+        return
+      }
+      guard let options = args["options"] as? [String: Any] else  {
+        result(FlutterError(code: "stt", message: "Call missing mandatory parameter language.", details: nil))
+        return
+      }
+
       do {
-        try stt.start()
+        try stt.start(SttRecognitionOptions.fromMap(options))
         result(nil)
       } catch {
         result(FlutterError(code: "stt", message: error.localizedDescription, details: nil))

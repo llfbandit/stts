@@ -9,6 +9,41 @@ enum SttState: Int {
   case start = 1
 }
 
+class SttRecognitionOptions {
+  let punctuation: Bool
+  let contextualStrings: [String]
+  let taskHint: SFSpeechRecognitionTaskHint?
+
+  init(punctuation: Bool, contextualStrings: [String], taskHint: SFSpeechRecognitionTaskHint? = nil) {
+    self.punctuation = punctuation
+    self.contextualStrings = contextualStrings
+    self.taskHint = taskHint
+  }
+  
+  static func fromMap(_ map: [String: Any]) -> SttRecognitionOptions {
+    let punctuation = map["punctuation"] as? Bool ?? false
+    let contextualStrings = map["contextualStrings"] as? [String] ?? []
+    
+    var taskHint: SFSpeechRecognitionTaskHint?
+    if let iosOptions = map["ios"] as? [String : Any] {
+      let taskHintString = iosOptions["taskHint"] as? String
+      
+      switch taskHintString {
+      case "confirmation": taskHint = .confirmation
+      case "dictation": taskHint = .dictation
+      case "search": taskHint = .search
+      default: taskHint = .unspecified
+      }
+    }
+    
+    return SttRecognitionOptions(
+      punctuation: punctuation,
+      contextualStrings: contextualStrings,
+      taskHint: taskHint
+    )
+  }
+}
+
 class Stt {
   private var currentLocale: Locale = Locale.current
   
@@ -62,10 +97,10 @@ class Stt {
     })
   }
   
-  func start() throws {
+  func start(_ options: SttRecognitionOptions) throws {
     stop()
 
-    try prepareRecognition()
+    try prepareRecognition(options)
     
     audioEngine.prepare()
     try audioEngine.start()
@@ -92,7 +127,7 @@ class Stt {
     stop()
   }
 
-  private func prepareRecognition() throws {
+  private func prepareRecognition(_ options: SttRecognitionOptions) throws {
     let recognizer = SFSpeechRecognizer(locale: currentLocale)
     guard let recognizer else {
       throw SttError.error("Failed to create recognizer.")
@@ -107,6 +142,16 @@ class Stt {
       if recognizer.supportsOnDeviceRecognition {
         recognitionRequest.requiresOnDeviceRecognition = true
       }
+    }
+
+    if let taskHint = options.taskHint {
+      recognitionRequest.taskHint = taskHint
+    }
+    if !options.contextualStrings.isEmpty {
+      recognitionRequest.contextualStrings = options.contextualStrings
+    }
+    if #available(iOS 16, *) {
+      recognitionRequest.addsPunctuation = options.punctuation
     }
     
     // setup task

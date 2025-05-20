@@ -42,13 +42,13 @@ abstract class TtsMethodChannelPlatformInterface {
 
   /// Sets language for next utterance.
   ///
-  /// [language] is language code (e.g. en-US)
+  /// [language] is language code (e.g. fr-FR)
   Future<void> setLanguage(String language);
 
   /// Gets current language.
   Future<String> getLanguage();
 
-  /// Returns supported languages (e.g. en-US).
+  /// Returns supported languages (e.g. fr-FR).
   Future<List<String>> getLanguages();
 
   /// Sets voice by its ID.
@@ -59,7 +59,7 @@ abstract class TtsMethodChannelPlatformInterface {
 
   /// Returns voices by given [language].
   ///
-  /// [language] is language code (e.g. en-US)
+  /// [language] is language code (e.g. fr-FR)
   Future<List<TtsVoice>> getVoicesByLanguage(String language);
 
   /// Sets tone pitch of next utterance. Range is likely 0.0 - 2.0.

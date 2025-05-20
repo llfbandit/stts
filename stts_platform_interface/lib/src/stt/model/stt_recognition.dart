@@ -1,6 +1,6 @@
 /// Speech recognition representation.
 class SttRecognition {
-  SttRecognition(this.text, this.isFinal);
+  const SttRecognition(this.text, this.isFinal);
 
   /// The recognized text.
   final String text;

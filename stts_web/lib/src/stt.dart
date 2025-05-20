@@ -5,12 +5,22 @@ import 'dart:js_interop_unsafe';
 import 'package:stts_platform_interface/stts_platform_interface.dart';
 import 'package:web/web.dart';
 
-// Remove this when fixed (#276)[https://github.com/dart-lang/web/issues/276].
-// There's an issue on release mode with missing polyfill and webkit renaming.
 @JS('webkitSpeechRecognition')
 extension type _WebkitSpeechRecognition._(SpeechRecognition _)
     implements SpeechRecognition {
   external factory _WebkitSpeechRecognition();
+}
+
+@JS('SpeechGrammarList')
+extension type SpeechGrammarList._(JSObject _) implements JSObject {
+  external factory SpeechGrammarList();
+  external void addFromString(JSString string, [JSNumber? weight]);
+}
+
+@JS('webkitSpeechGrammarList')
+extension type _WebkitSpeechGrammarList._(SpeechGrammarList _)
+    implements SpeechGrammarList {
+  external factory _WebkitSpeechGrammarList();
 }
 
 class Stt extends SttPlatformInterface {
@@ -47,13 +57,17 @@ class Stt extends SttPlatformInterface {
   }
 
   @override
-  Future<void> start() async {
+  Future<void> start([SttRecognitionOptions? options]) async {
     if (!_isSupported()) return;
 
     _recognizer.continuous = false;
     _recognizer.lang = _language;
     _recognizer.interimResults = true;
     _recognizer.maxAlternatives = 0;
+
+    if (options case final options?) {
+      _setRecognitionOptions(options);
+    }
 
     _recognizer.onerror = _onError.toJS;
     _recognizer.onstart = _onStart.toJS;
@@ -96,9 +110,9 @@ class Stt extends SttPlatformInterface {
   ///////////////////////////////////////////////////////
 
   SpeechRecognition get _recognizer {
-    _recognizerInstance ??= window.hasProperty('SpeechRecognition'.toJS).toDart
-        ? SpeechRecognition()
-        : _WebkitSpeechRecognition();
+    _recognizerInstance ??= _createSpeechRecognition();
+    assert(_recognizerInstance != null, 'SpeechRecognition is not supported.');
+
     return _recognizerInstance!;
   }
 
@@ -131,11 +145,7 @@ class Stt extends SttPlatformInterface {
 
   bool _isSupported() {
     try {
-      window.hasProperty('SpeechRecognition'.toJS).toDart
-          ? SpeechRecognition()
-          : _WebkitSpeechRecognition();
-
-      return true;
+      return _createSpeechRecognition() != null;
     } catch (_) {
       return false;
     }
@@ -144,8 +154,47 @@ class Stt extends SttPlatformInterface {
   void _stop() {
     if (!_isSupported()) return;
 
-    _recognizer.stop();
+    _recognizerInstance?.stop();
+    _recognizerInstance = null;
+
     _updateState(SttState.stop);
+  }
+
+  void _setRecognitionOptions(SttRecognitionOptions options) {
+    if (options.contextualStrings.isNotEmpty) {
+      final grammars = _createGrammarList();
+
+      if (grammars != null) {
+        final grammarsString = StringBuffer('#JSGF V1.0; ')
+          ..write('grammar values; ')
+          ..write('public <value> = ')
+          ..write(options.contextualStrings.join(' | '))
+          ..write(' ;');
+
+        grammars.addFromString(grammarsString.toString().toJS, 1.toJS);
+        _recognizer.grammars = grammars;
+      }
+    }
+  }
+
+  SpeechGrammarList? _createGrammarList() {
+    if (window.hasProperty('webkitSpeechGrammarList'.toJS).toDart) {
+      return _WebkitSpeechGrammarList();
+    } else if (window.hasProperty('SpeechGrammarList'.toJS).toDart) {
+      return SpeechGrammarList();
+    }
+
+    return null;
+  }
+
+  SpeechRecognition? _createSpeechRecognition() {
+    if (window.hasProperty('webkitSpeechRecognition'.toJS).toDart) {
+      return _WebkitSpeechRecognition();
+    } else if (window.hasProperty('SpeechRecognition'.toJS).toDart) {
+      return SpeechRecognition();
+    }
+
+    return null;
   }
 
   ///////////////////////////////////////////////////////
@@ -168,8 +217,6 @@ class Stt extends SttPlatformInterface {
 
     final recognitionResult = results.item(0);
     if (recognitionResult.length == 0) return;
-
-    recognitionResult.item(0).transcript;
 
     _updateResult(
       recognitionResult.item(0).transcript,

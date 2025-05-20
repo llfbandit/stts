@@ -1,6 +1,7 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'model/stt_recognition.dart';
+import 'model/stt_recognition_options.dart';
 import 'model/stt_state.dart';
 import 'stt_platform.dart';
 
@@ -28,19 +29,21 @@ abstract class SttMethodChannelPlatformInterface {
   /// Checks and requests audio microphone permission.
   Future<bool> hasPermission();
 
-  /// Gets current language for the recognizer (e.g. en-US).
+  /// Gets current language for the recognizer (e.g. fr-FR).
   Future<String> getLanguage();
 
-  /// Sets current language for the recognizer (e.g. en-US).
+  /// Sets current language for the recognizer (e.g. fr-FR).
   Future<void> setLanguage(String language);
 
-  /// Gets supported languages by the recognizer (e.g. en-US).
+  /// Gets supported languages by the recognizer (e.g. fr-FR).
   Future<List<String>> getLanguages();
 
   /// Starts speech recognition.
   ///
+  /// [options]: Additional recognition options.
+  ///
   /// Refer to [onStateChanged] for accurate state.
-  Future<void> start();
+  Future<void> start([SttRecognitionOptions? options]);
 
   /// Stops speech recognition.
   ///
@@ -63,14 +66,14 @@ abstract class SttMethodChannelPlatformInterface {
 
 /// Android platform specific methods.
 abstract class SttAndroid {
-  /// Download model for given [language] (e.g. en-US).
+  /// Download model for given [language] (e.g. fr-FR).
   ///
   /// This might trigger user interaction to approve the download.
   ///
   /// Useful for offline usage. API 34+.
   Future<void> downloadModel(String language);
 
-  /// Callback for [downloadModel] method when download finished.
+  /// Callback for [downloadModel] method when download is finished.
   ///
   /// [errCode] is null on success. Otherwise check ERROR_* constants.
   /// https://developer.android.com/reference/android/speech/SpeechRecognizer#constants_1
@@ -78,7 +81,11 @@ abstract class SttAndroid {
     void Function(String language, int? errCode)? callback,
   );
 
-  /// Mute default system beep sounds when starting and stopping speech recognition.
+  /// Mutes default system beep sounds when starting speech recognition.
+  ///
+  /// Previous setup is restored when stopping/disposing.
+  ///
+  /// This is a bit hacky, if the user pauses the app, the setting is kept.
   Future<void> muteSystemSounds(bool mute);
 }
 

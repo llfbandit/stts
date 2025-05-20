@@ -10,6 +10,7 @@ import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import com.llfbandit.stts.stt.model.SttRecognitionOptions
 import com.llfbandit.stts.stt.model.SttState
 import com.llfbandit.stts.stt.stream.SttResultStreamHandler
 import com.llfbandit.stts.stt.stream.SttStateStreamHandler
@@ -56,7 +57,7 @@ class Stt(
     return SpeechLanguageHelper().getSupportedLocales(context, resultCallback)
   }
 
-  fun start() {
+  fun start(options: SttRecognitionOptions) {
     if (!isSupported()) return
 
     if (speechRecognizer == null) {
@@ -74,14 +75,17 @@ class Stt(
     }
 
     val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-      putExtra(
-        RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-        RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
-      )
+      putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, options.model)
       putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
       putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLocale.toLanguageTag())
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
         putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+      }
+      if (options.punctuation && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        putExtra(RecognizerIntent.EXTRA_ENABLE_FORMATTING, RecognizerIntent.FORMATTING_OPTIMIZE_QUALITY)
+      }
+      if (options.contextualStrings.isNotEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        putExtra(RecognizerIntent.EXTRA_BIASING_STRINGS, options.contextualStrings)
       }
     }
 
