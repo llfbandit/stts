@@ -96,11 +96,7 @@ class _SttPageState extends State<SttPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 TextButton(
-                  onPressed: _started
-                      ? null
-                      : () => _stt.start(SttRecognitionOptions(
-                          punctuation: true,
-                          contextualStrings: ['nouvelatrium', 'nouagou'])),
+                  onPressed: _started ? null : () => _stt.start(),
                   child: Text('Start'),
                 ),
                 TextButton(

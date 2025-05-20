@@ -27,7 +27,7 @@ class SttRecognitionOptions {
     var taskHint: SFSpeechRecognitionTaskHint?
     if let macosOptions = map["macos"] as? [String : Any] {
       let taskHintString = macosOptions["taskHint"] as? String
-      
+
       switch taskHintString {
       case "confirmation": taskHint = .confirmation
       case "dictation": taskHint = .dictation
