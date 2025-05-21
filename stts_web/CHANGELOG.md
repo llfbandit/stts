@@ -1,3 +1,6 @@
+## 0.9.3
+* fix: Platform interface version.
+
 ## 0.9.2
 * feat(STT): Add recognition options.
 
