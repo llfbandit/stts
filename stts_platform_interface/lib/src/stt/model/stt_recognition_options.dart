@@ -8,9 +8,9 @@ class SttRecognitionOptions {
   ///
   /// Keep also the list limited (below 100).
   ///
-  /// This may not work on your platform or language (seems to do nothing in French for example).
+  /// This may not work on your platform or language, Web & Android seem to don't bias anything.
   ///
-  /// Android: API 33+
+  /// Android: API 33
   final List<String> contextualStrings;
 
   /// Whether the speech recognition engine should increase punctuation/formatting quality of the transcription.
