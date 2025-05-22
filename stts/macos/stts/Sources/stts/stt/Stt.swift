@@ -32,7 +32,7 @@ class SttRecognitionOptions {
       case "confirmation": taskHint = .confirmation
       case "dictation": taskHint = .dictation
       case "search": taskHint = .search
-      default: taskHint = .unspecified
+      default: taskHint = nil
       }
     }
     
@@ -98,8 +98,6 @@ class Stt {
   }
   
   func start(_ options: SttRecognitionOptions) throws {
-    stop()
-    
     try prepareRecognition(options)
     
     audioEngine.prepare()
@@ -109,13 +107,13 @@ class Stt {
   }
   
   func stop() {
-    audioEngine.stop()
-    audioEngine.inputNode.removeTap(onBus: 0)
-    
     recognitionRequest?.endAudio()
     recognitionRequest = nil
     
-    recognitionTask?.finish()
+    audioEngine.stop()
+    audioEngine.inputNode.removeTap(onBus: 0)
+    
+    recognitionTask?.cancel()
     recognitionTask = nil
     
     recognizer = nil
@@ -131,6 +129,9 @@ class Stt {
     let recognizer = SFSpeechRecognizer(locale: currentLocale)
     guard let recognizer else {
       throw SttError.error("Failed to create recognizer.")
+    }
+    guard recognizer.isAvailable else {
+      throw SttError.error("Recognizer is not available.")
     }
 
     // setup request
@@ -156,39 +157,39 @@ class Stt {
     let recognitionTask = recognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
       guard let self = self else { return }
       
-      var isFinal = false
-      
       if let result = result {
         let transcription = result.bestTranscription
 
         // isFinal seems to be always false, stops with confidence instead.
         // Partial results are always with confidence == 0.
         let confidence = transcription.segments[0].confidence
-        isFinal = result.isFinal || confidence > 0.0 ? true : false
+        let isFinal = result.isFinal || confidence > 0.0 ? true : false
         
         if !transcription.formattedString.isEmpty {
           self.resultEventHandler.sendEvent(transcription.formattedString, isFinal)
         }
-      } else if let error = error {
+        if isFinal {
+          self.stop()
+        }
+      } else if self.recognitionTask != nil, let error = error { // check task to not fire error event on stop/cancel
         self.stateEventHandler.sendErrorEvent(error)
-      }
-      
-      if error != nil || isFinal {
         self.stop()
       }
     }
+
+    self.recognitionRequest = recognitionRequest
+    self.recognitionTask = recognitionTask
+    self.recognizer = recognizer
     
     // setup audio
     let inputNode = audioEngine.inputNode
     let format = inputNode.inputFormat(forBus: 0)
     
     // feed our recognition task with request
-    inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { (buffer, when) in
-      recognitionRequest.append(buffer)
+    inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] (buffer, when) in
+      guard let self = self else { return }
+
+      self.recognitionRequest?.append(buffer)
     }
-    
-    self.recognitionRequest = recognitionRequest
-    self.recognitionTask = recognitionTask
-    self.recognizer = recognizer
   }
 }
