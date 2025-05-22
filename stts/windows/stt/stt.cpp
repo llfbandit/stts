@@ -22,19 +22,28 @@ namespace stts {
         auto pThis = (Stt*)wParam;
 
         CSpEvent event;
-        while (event.GetFrom(pThis->m_pRecoContext) == S_OK) {
+        if (event.GetFrom(pThis->m_pRecoContext) == S_OK)
+        {
             if (SPEI_HYPOTHESIS == event.eEventId || SPEI_RECOGNITION == event.eEventId)
             {
                 LPWSTR dstrText;
-                event.RecoResult()->GetText((ULONG)SP_GETWHOLEPHRASE, (ULONG)SP_GETWHOLEPHRASE, TRUE, &dstrText, NULL);
+                HRESULT hr = event.RecoResult()->GetText((ULONG)SP_GETWHOLEPHRASE, (ULONG)SP_GETWHOLEPHRASE, TRUE, &dstrText, NULL);
+                if (FAILED(hr))
+                {
+                    _com_error err(hr);
+                    std::string msg = Utf8FromUtf16(err.ErrorMessage());
+                    pThis->m_stateEventHandler->Error(std::to_string(hr), msg);
+                }
+                else
+                {
+                    auto text = Utf8FromUtf16(dstrText);
+                    pThis->m_resultEventHandler->Success(flutter::EncodableMap({
+                        {flutter::EncodableValue("text"), flutter::EncodableValue(text)},
+                        {flutter::EncodableValue("isFinal"), flutter::EncodableValue(SPEI_RECOGNITION == event.eEventId)}
+                    }));
 
-                auto text = Utf8FromUtf16(dstrText);
-                pThis->m_resultEventHandler->Success(flutter::EncodableMap({
-					{flutter::EncodableValue("text"), flutter::EncodableValue(text)},
-					{flutter::EncodableValue("isFinal"), flutter::EncodableValue(SPEI_RECOGNITION == event.eEventId)}
-                }));
-
-                CoTaskMemFree(dstrText);
+                    CoTaskMemFree(dstrText);
+                }
             }
 
             if (SPEI_RECOGNITION == event.eEventId) {
@@ -54,77 +63,66 @@ namespace stts {
     {
         std::string language = "";
 
-        CreateRecognizer();
+        ThrowIfFailed(CreateRecognizer());
 
-        if (m_pRecognizer)
-        {
-            ISpObjectToken* pToken = NULL;
-            if (SUCCEEDED(m_pRecognizer->GetRecognizer(&pToken)))
-            {
-                ISpDataKey* cpAttribKey;
+        ISpObjectToken* pToken = NULL;
+        ThrowIfFailed(m_pRecognizer->GetRecognizer(&pToken));
 
-                if (SUCCEEDED(pToken->OpenKey(L"Attributes", &cpAttribKey))) {
-                    LPWSTR wValue;
+        ISpDataKey* cpAttribKey;
+        ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
 
-                    if (SUCCEEDED(cpAttribKey->GetStringValue(L"Language", &wValue))) {
-                        // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-                        wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-                        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
-                        CoTaskMemFree(wValue);
+        LPWSTR wValue;
+        ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
 
-                        language = (std::string)CW2A(locale);
-                    }
+        // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
+        wchar_t locale[LOCALE_NAME_MAX_LENGTH];
+        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+        CoTaskMemFree(wValue);
 
-                    cpAttribKey->Release();
-                }
+        language = (std::string)CW2A(locale);
 
-            }
-        }
+        cpAttribKey->Release();
 
         return language;
     }
 
     void Stt::SetLanguage(std::string language)
     {
-        CreateRecognizer();
+        ThrowIfFailed(CreateRecognizer());
 
-        if (m_pRecognizer)
+        IEnumSpObjectTokens* cpEnum = NULL;
+        ThrowIfFailed(SpEnumTokens(SPCAT_RECOGNIZERS, NULL, NULL, &cpEnum));
+
+        ISpObjectToken* pToken = NULL;
+
+        while (cpEnum->Next(1, &pToken, NULL) == S_OK)
         {
-            IEnumSpObjectTokens* cpEnum = NULL;
+            ISpDataKey* cpAttribKey;
+            ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
 
-            if (SUCCEEDED(SpEnumTokens(SPCAT_RECOGNIZERS, NULL, NULL, &cpEnum))) {
-                ISpObjectToken* pToken = NULL;
+            LPWSTR wValue;
+            ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
 
-                while (cpEnum->Next(1, &pToken, NULL) == S_OK) {
-                    ISpDataKey* cpAttribKey;
+            // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
+            wchar_t locale[LOCALE_NAME_MAX_LENGTH];
+            LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+            CoTaskMemFree(wValue);
 
-                    if (SUCCEEDED(pToken->OpenKey(L"Attributes", &cpAttribKey))) {
-                        LPWSTR wValue;
-
-                        if (SUCCEEDED(cpAttribKey->GetStringValue(L"Language", &wValue))) {
-                            // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-                            wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-                            LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
-                            CoTaskMemFree(wValue);
-
-                            if ((std::string)CW2A(locale) == language)
-                            {
-                                m_pRecognizer->SetRecognizer(pToken);
-                                cpAttribKey->Release();
-                                cpEnum->Release();
-                                return;
-                            }
-                        }
-
-                        cpAttribKey->Release();
-                    }
-
-                    pToken->Release();
-                }
-
+            if ((std::string)CW2A(locale) == language)
+            {
+                cpAttribKey->Release();
+                pToken->Release();
                 cpEnum->Release();
+
+                ThrowIfFailed(m_pRecognizer->SetRecognizer(pToken));                
+                return;
             }
+
+            cpAttribKey->Release();
+            pToken->Release();
         }
+
+        cpEnum->Release();
     }
 
     // https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ee431801(v=vs.85)#62-category-recognizers
@@ -133,51 +131,47 @@ namespace stts {
         std::vector<std::string> languages;
 
         IEnumSpObjectTokens* cpEnum = NULL;
+        ThrowIfFailed(SpEnumTokens(SPCAT_RECOGNIZERS, NULL, NULL, &cpEnum));
 
-        if (SUCCEEDED(SpEnumTokens(SPCAT_RECOGNIZERS, NULL, NULL, &cpEnum))) {
-            ISpObjectToken* pToken = NULL;
+        ISpObjectToken* pToken = NULL;
+        while (cpEnum->Next(1, &pToken, NULL) == S_OK)
+        {
+            ISpDataKey* cpAttribKey;
+            ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
 
-            while (cpEnum->Next(1, &pToken, NULL) == S_OK) {
-                ISpDataKey* cpAttribKey;
+            LPWSTR wValue;
+            ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
 
-                if (SUCCEEDED(pToken->OpenKey(L"Attributes", &cpAttribKey))) {
-                    LPWSTR wValue;
+            // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
+            wchar_t locale[LOCALE_NAME_MAX_LENGTH];
+            LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+            CoTaskMemFree(wValue);
 
-                    if (SUCCEEDED(cpAttribKey->GetStringValue(L"Language", &wValue))) {
-                        // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-                        wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-                        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
-                        CoTaskMemFree(wValue);
+            languages.push_back((std::string)CW2A(locale));
 
-                        languages.push_back((std::string)CW2A(locale));
-                    }
-
-                    cpAttribKey->Release();
-                }
-
-                pToken->Release();
-            }
-
-            cpEnum->Release();
+            cpAttribKey->Release();
+            pToken->Release();
         }
+
+        cpEnum->Release();
 
         return languages;
     }
 
     void Stt::Start() {
-        HRESULT hr = CreateRecognizer();
-        if (FAILED(hr)) return;
+        ThrowIfFailed(CreateRecognizer());
 
-        hr = m_pRecoContext->SetNotifyCallbackFunction((SPNOTIFYCALLBACK*)Stt::RecoEventCallback, (WPARAM)this, 0);
+        ThrowIfFailed(m_pRecoContext->SetNotifyCallbackFunction((SPNOTIFYCALLBACK*)Stt::RecoEventCallback, (WPARAM)this, 0));
+
         auto interests = SPFEI(SPEI_RECOGNITION) | SPFEI(SPEI_HYPOTHESIS);
-        hr = m_pRecoContext->SetInterest(interests, interests);
+        ThrowIfFailed(m_pRecoContext->SetInterest(interests, interests));
 
         ISpObjectToken* token;
-        hr = SpGetDefaultTokenFromCategoryId(SPCAT_AUDIOIN, &token);
-        hr = m_pRecognizer->SetInput(token, TRUE);
+        ThrowIfFailed(SpGetDefaultTokenFromCategoryId(SPCAT_AUDIOIN, &token));
 
-        hr = m_pRecoGrammar->LoadDictation(NULL, SPLO_STATIC);
-        hr = m_pRecoGrammar->SetDictationState(SPRS_ACTIVE);
+        ThrowIfFailed(m_pRecognizer->SetInput(token, TRUE));
+        ThrowIfFailed(m_pRecoGrammar->LoadDictation(NULL, SPLO_STATIC));
+        ThrowIfFailed(m_pRecoGrammar->SetDictationState(SPRS_ACTIVE));
 
         m_stateEventHandler->Success(flutter::EncodableValue(1));
     }
@@ -187,13 +181,8 @@ namespace stts {
         if (m_pRecoGrammar)
         {
             m_pRecoGrammar->SetDictationState(SPRS_INACTIVE);
-            m_stateEventHandler->Success(flutter::EncodableValue(0));
+            m_pRecoGrammar->UnloadDictation();
         }
-    }
-
-    void Stt::Dispose()
-    {
-        Stop();
 
         if (m_pRecognizer)
         {
@@ -209,49 +198,57 @@ namespace stts {
 
         if (m_pRecoGrammar)
         {
-            m_pRecoGrammar->UnloadDictation();
             m_pRecoGrammar->Release();
             m_pRecoGrammar = NULL;
+
+            m_stateEventHandler->Success(flutter::EncodableValue(0));
         }
+    }
+
+    void Stt::Dispose()
+    {
+        Stop();
     }
 
     HRESULT Stt::CreateRecognizer()
     {
+        HRESULT hr = S_OK;
+
         if (m_pRecognizer == NULL)
         {
-            HRESULT hr = CoCreateInstance(CLSID_SpInprocRecognizer, NULL, CLSCTX_ALL, IID_ISpRecognizer, (void**)&m_pRecognizer);
+            hr = CoCreateInstance(CLSID_SpInprocRecognizer, NULL, CLSCTX_ALL, IID_ISpRecognizer, (void**)&m_pRecognizer);
             if (FAILED(hr)) return hr;
         }
         if (m_pRecoContext == NULL)
         {
-            HRESULT hr = m_pRecognizer->CreateRecoContext(&m_pRecoContext);
+            hr = m_pRecognizer->CreateRecoContext(&m_pRecoContext);
             if (FAILED(hr)) return hr;
         }
         if (m_pRecoGrammar == NULL)
         {
-            HRESULT hr = m_pRecoContext->CreateGrammar(0, &m_pRecoGrammar); // ID = 0
+            hr = m_pRecoContext->CreateGrammar(0, &m_pRecoGrammar); // ID = 0
             if (FAILED(hr)) return hr;
         }
 
-        return S_OK;
+        return hr;
     }
 
     // Display the engine's training window
     void Stt::ShowTrainingUI(std::vector<std::wstring>& trainingTexts)
     {
-        HRESULT hr = CreateRecognizer();
-        if (FAILED(hr)) return;
+        ThrowIfFailed(CreateRecognizer());
 
         BOOL bSupported = false;
+        ThrowIfFailed(m_pRecognizer->IsUISupported(SPDUI_UserTraining, NULL, NULL, &bSupported));
 
-        hr = m_pRecognizer->IsUISupported(SPDUI_UserTraining, NULL, NULL, &bSupported);
-        if (SUCCEEDED(hr) && bSupported)
+        if (bSupported)
         {
             std::wstring texts = L"";
 
             if (trainingTexts.size() != 0) {
                 texts = trainingTexts[0];
-                for (unsigned int i = 1; i < trainingTexts.size(); i++) {
+                for (unsigned int i = 1; i < trainingTexts.size(); i++)
+                {
                     texts += L"\n" + trainingTexts[i];
                 }
             }
@@ -259,13 +256,21 @@ namespace stts {
             auto wcTexts = texts.c_str();
             auto wcTextsLen = (ULONG)wcslen(wcTexts);
 
-            m_pRecognizer->DisplayUI(
+            ThrowIfFailed(m_pRecognizer->DisplayUI(
                 NULL,
                 NULL,
                 SPDUI_UserTraining,
                 wcTextsLen != 0 ? (void*)wcTexts : NULL,
                 wcTextsLen != 0 ? wcTextsLen * sizeof(wchar_t) : NULL
-            );
+            ));
+        }
+    }
+
+    void Stt::ThrowIfFailed(HRESULT code)
+    {
+        if (FAILED(code))
+        {
+            throw code;
         }
     }
 

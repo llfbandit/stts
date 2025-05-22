@@ -62,6 +62,7 @@ namespace stts {
 		EventStreamHandler* m_stateEventHandler;
 
 		HRESULT CreateVoice();
+		void ThrowIfFailed(HRESULT code);		
 	};
 
 }

@@ -90,7 +90,12 @@ namespace stts {
 			result->Success(flutter::EncodableValue(true));
 		}
 		else if (method.compare("getLanguage") == 0) {
-			result->Success(flutter::EncodableValue(mStt->getLanguage()));
+			try
+			{
+				result->Success(flutter::EncodableValue(mStt->getLanguage()));
+			} catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("setLanguage") == 0) {
 			const auto args = method_call.arguments();
@@ -98,24 +103,41 @@ namespace stts {
 			std::string language;
 			GetValueFromEncodableMap(mapArgs, "language", language);
 
-			mStt->SetLanguage(language);
-
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mStt->SetLanguage(language);
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("getLanguages") == 0) {
-			auto languages = mStt->GetLanguages();
-			
-			flutter::EncodableList encodableLanguages;
-			for (int i = 0; i < languages.size(); ++i)
+			try
 			{
-				encodableLanguages.push_back(EncodableValue(languages[i]));
-			}
+				auto languages = mStt->GetLanguages();
 
-			result->Success(encodableLanguages);
+				flutter::EncodableList encodableLanguages;
+				for (int i = 0; i < languages.size(); ++i)
+				{
+					encodableLanguages.push_back(EncodableValue(languages[i]));
+				}
+
+				result->Success(encodableLanguages);
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("start") == 0) {
-			mStt->Start();
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mStt->Start();
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("stop") == 0) {
 			mStt->Stop();
@@ -133,9 +155,14 @@ namespace stts {
 				texts.push_back(Utf16FromUtf8(std::get<std::string>(trainingText)));
 			}
 
-			mStt->ShowTrainingUI(texts);
-
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mStt->ShowTrainingUI(texts);
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("dispose") == 0) {
 			mStt->Dispose();
@@ -161,24 +188,47 @@ namespace stts {
 			std::string text;
 			GetValueFromEncodableMap(mapArgs, "text", text);
 
-			mTts->Start(text);
-
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mTts->Start(text);
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}			
 		}
 		else if (method.compare("stop") == 0) {
 			mTts->Stop();
 			result->Success(flutter::EncodableValue(NULL));
 		}
 		else if (method.compare("pause") == 0) {
-			mTts->Pause();
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mTts->Pause();
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("resume") == 0) {
-			mTts->Resume();
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mTts->Resume();
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("getLanguage") == 0) {
-			result->Success(flutter::EncodableValue(mTts->GetLanguage()));
+			try
+			{
+				result->Success(flutter::EncodableValue(mTts->GetLanguage()));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("setLanguage") == 0) {
 			const auto args = method_call.arguments();
@@ -186,20 +236,31 @@ namespace stts {
 			std::string language;
 			GetValueFromEncodableMap(mapArgs, "language", language);
 
-			mTts->SetLanguage(language);
-
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mTts->SetLanguage(language);
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("getLanguages") == 0) {
-			auto languages = mTts->GetLanguages();
-
-			flutter::EncodableList encodableLanguages;
-			for (int i = 0; i < languages.size(); ++i)
+			try
 			{
-				encodableLanguages.push_back(EncodableValue(languages[i]));
-			}
+				auto languages = mTts->GetLanguages();
 
-			result->Success(encodableLanguages);
+				flutter::EncodableList encodableLanguages;
+				for (int i = 0; i < languages.size(); ++i)
+				{
+					encodableLanguages.push_back(EncodableValue(languages[i]));
+				}
+
+				result->Success(encodableLanguages);
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("setVoice") == 0) {
 			const auto args = method_call.arguments();
@@ -207,27 +268,38 @@ namespace stts {
 			std::string voiceId;
 			GetValueFromEncodableMap(mapArgs, "voiceId", voiceId);
 
-			mTts->SetVoice(voiceId);
-
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mTts->SetVoice(voiceId);
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("getVoices") == 0) {
-			auto voices = mTts->GetVoices();
-
-			flutter::EncodableList encodableVoices;
-			for (TtsVoice voice : voices)
+			try
 			{
-				encodableVoices.push_back(EncodableMap({
-					{EncodableValue("id"), EncodableValue(voice.id)},
-					{EncodableValue("language"), EncodableValue(voice.language)},
-					{EncodableValue("languageInstalled"), EncodableValue(voice.languageInstalled)},
-					{EncodableValue("name"), EncodableValue(voice.name)},
-					{EncodableValue("networkRequired"), EncodableValue(voice.networkRequired)},
-					{EncodableValue("gender"), EncodableValue(ttsVoiceGenderToString(voice.gender))}
-				}));
-			}
+				auto voices = mTts->GetVoices();
 
-			result->Success(encodableVoices);
+				flutter::EncodableList encodableVoices;
+				for (TtsVoice voice : voices)
+				{
+					encodableVoices.push_back(EncodableMap({
+						{EncodableValue("id"), EncodableValue(voice.id)},
+						{EncodableValue("language"), EncodableValue(voice.language)},
+						{EncodableValue("languageInstalled"), EncodableValue(voice.languageInstalled)},
+						{EncodableValue("name"), EncodableValue(voice.name)},
+						{EncodableValue("networkRequired"), EncodableValue(voice.networkRequired)},
+						{EncodableValue("gender"), EncodableValue(ttsVoiceGenderToString(voice.gender))}
+						}));
+				}
+
+				result->Success(encodableVoices);
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("getVoicesByLanguage") == 0) {
 			const auto args = method_call.arguments();
@@ -235,22 +307,28 @@ namespace stts {
 			std::string language;
 			GetValueFromEncodableMap(mapArgs, "language", language);
 
-			auto voices = mTts->GetVoicesByLanguage(language);
-
-			flutter::EncodableList encodableVoices;
-			for (TtsVoice voice : voices)
+			try
 			{
-				encodableVoices.push_back(EncodableMap({
-					{EncodableValue("id"), EncodableValue(voice.id)},
-					{EncodableValue("language"), EncodableValue(voice.language)},
-					{EncodableValue("languageInstalled"), EncodableValue(voice.languageInstalled)},
-					{EncodableValue("name"), EncodableValue(voice.name)},
-					{EncodableValue("networkRequired"), EncodableValue(voice.networkRequired)},
-					{EncodableValue("gender"), EncodableValue(ttsVoiceGenderToString(voice.gender))}
-				}));
-			}
+				auto voices = mTts->GetVoicesByLanguage(language);
 
-			result->Success(encodableVoices);
+				flutter::EncodableList encodableVoices;
+				for (TtsVoice voice : voices)
+				{
+					encodableVoices.push_back(EncodableMap({
+						{EncodableValue("id"), EncodableValue(voice.id)},
+						{EncodableValue("language"), EncodableValue(voice.language)},
+						{EncodableValue("languageInstalled"), EncodableValue(voice.languageInstalled)},
+						{EncodableValue("name"), EncodableValue(voice.name)},
+						{EncodableValue("networkRequired"), EncodableValue(voice.networkRequired)},
+						{EncodableValue("gender"), EncodableValue(ttsVoiceGenderToString(voice.gender))}
+						}));
+				}
+
+				result->Success(encodableVoices);
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("setPitch") == 0) {
 			const auto args = method_call.arguments();
@@ -259,7 +337,6 @@ namespace stts {
 			GetValueFromEncodableMap(mapArgs, "pitch", pitch);
 
 			mTts->SetPitch(pitch);
-
 			result->Success(flutter::EncodableValue(NULL));
 		}
 		else if (method.compare("setRate") == 0) {
@@ -268,9 +345,14 @@ namespace stts {
 			double rate;
 			GetValueFromEncodableMap(mapArgs, "rate", rate);
 
-			mTts->SetRate(rate);
-
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mTts->SetRate(rate);
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("setVolume") == 0) {
 			const auto args = method_call.arguments();
@@ -278,9 +360,14 @@ namespace stts {
 			double volume;
 			GetValueFromEncodableMap(mapArgs, "volume", volume);
 
-			mTts->SetVolume(volume);
-
-			result->Success(flutter::EncodableValue(NULL));
+			try
+			{
+				mTts->SetVolume(volume);
+				result->Success(flutter::EncodableValue(NULL));
+			}
+			catch (HRESULT hr) {
+				result->Error(std::to_string(hr), GetErrorMessage(hr));
+			}
 		}
 		else if (method.compare("dispose") == 0) {
 			mTts->Dispose();
@@ -297,6 +384,12 @@ namespace stts {
 		case female:	return "female";
 		default:		return "unspecified";
 		}
+	}
+
+	std::string SttsPlugin::GetErrorMessage(HRESULT hr)
+	{
+		_com_error err(hr);
+		return Utf8FromUtf16(err.ErrorMessage());
 	}
 
 }  // namespace stts

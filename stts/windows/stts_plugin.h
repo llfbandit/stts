@@ -38,6 +38,8 @@ private:
     std::unique_ptr<Tts> mTts;
 
     std::string ttsVoiceGenderToString(TtsVoiceGender gender);
+
+    std::string GetErrorMessage(HRESULT hr);
 };
 
 }  // namespace stts

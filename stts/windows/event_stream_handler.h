@@ -17,9 +17,9 @@ namespace stts {
             if (m_sink.get()) m_sink.get()->Success(data);
         }
 
-        void Error(const std::string& error_code, const std::string& error_message, const EncodableValue& error_details) {
+        void Error(const std::string& error_code, const std::string& error_message) {
             if (m_sink.get())
-                m_sink.get()->Error(error_code, error_message, error_details);
+                m_sink.get()->Error(error_code, error_message);
         }
 
     protected:

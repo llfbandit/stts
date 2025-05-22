@@ -36,6 +36,8 @@ namespace stts {
 		EventStreamHandler* m_resultEventHandler;
 
 		HRESULT CreateRecognizer();
+
+		void ThrowIfFailed(HRESULT code);
 	};
 
 }
