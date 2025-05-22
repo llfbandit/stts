@@ -3,6 +3,7 @@ package com.llfbandit.stts.stt
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.SpeechRecognizer
+import android.util.Log
 import com.llfbandit.stts.stt.model.SttRecognitionError
 import com.llfbandit.stts.stt.model.SttState
 import com.llfbandit.stts.stt.stream.SttResultStreamHandler
@@ -14,6 +15,7 @@ class SttRecognitionListener(
   private val onStop: () -> Unit,
 ): RecognitionListener {
   private var currentResult: String = ""
+  private val logTag = "Stt"
 
   override fun onReadyForSpeech(params: Bundle?) = stateStreamHandler.sendEvent(SttState.Start)
 
@@ -76,6 +78,7 @@ class SttRecognitionListener(
       SpeechRecognizer.ERROR_CLIENT -> {
         // client is not processed as error, just trigger stop event
         // This error occurs when nothing has been detected, user cancelled recognition.
+        Log.d(logTag, "Speech recognition cancelled or nothing has been detected.")
         onStop()
       }
       else -> {

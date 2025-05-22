@@ -61,35 +61,13 @@ class Stt(
     if (!isSupported()) return
 
     if (speechRecognizer == null) {
-      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
-
-      val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-      originalRingerMode = audioManager.ringerMode
-
-      speechRecognizer?.setRecognitionListener(
-        SttRecognitionListener(
-          stateStreamHandler,
-          resultStreamHandler,
-          onStop = { onStop() })
-      )
+      createSpeechRecognizer()
+      saveRingerMode()
     }
 
-    val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-      putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, options.model)
-      putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-      putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLocale.toLanguageTag())
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
-      }
-      if (options.punctuation && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        putExtra(RecognizerIntent.EXTRA_ENABLE_FORMATTING, RecognizerIntent.FORMATTING_OPTIMIZE_QUALITY)
-      }
-      if (options.contextualStrings.isNotEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        putExtra(RecognizerIntent.EXTRA_BIASING_STRINGS, options.contextualStrings)
-      }
-    }
+    val recognizerIntent = setupRecognitionIntent(options)
 
-    onStart()
+    setRingerModeVibrate()
 
     speechRecognizer?.startListening(recognizerIntent)
   }
@@ -97,8 +75,12 @@ class Stt(
   fun stop() {
     if (!isSupported()) return
 
+    speechRecognizer?.setRecognitionListener(null)
     speechRecognizer?.cancel()
-    stateStreamHandler.sendEvent(SttState.Stop)
+    speechRecognizer?.destroy()
+    speechRecognizer = null
+
+    restoreRingerMode(onRestored = { stateStreamHandler.sendEvent(SttState.Stop) })
   }
 
   fun downloadModel(language: String, onEnd: (errCode: Int?) -> Unit) {
@@ -179,30 +161,70 @@ class Stt(
   fun dispose() {
     stop()
 
-    speechRecognizer?.setRecognitionListener(null)
-    speechRecognizer?.destroy()
-    speechRecognizer = null
-
     muteSystemSounds = false
   }
 
-  private fun onStart() {
+  private fun createSpeechRecognizer() {
+    if (speechRecognizer == null) {
+      speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+
+      speechRecognizer?.setRecognitionListener(
+        SttRecognitionListener(
+          stateStreamHandler,
+          resultStreamHandler,
+          onStop = { stop() })
+      )
+    }
+  }
+
+  private fun setupRecognitionIntent(options: SttRecognitionOptions): Intent {
+    val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+      putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, options.model)
+      putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
+      putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLocale.toLanguageTag())
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+      }
+
+      if (options.punctuation && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        putExtra(
+          RecognizerIntent.EXTRA_ENABLE_FORMATTING,
+          RecognizerIntent.FORMATTING_OPTIMIZE_QUALITY
+        )
+      }
+
+      if (options.contextualStrings.isNotEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        putExtra(RecognizerIntent.EXTRA_BIASING_STRINGS, options.contextualStrings)
+      }
+    }
+
+    return recognizerIntent
+  }
+
+  private fun saveRingerMode() {
+    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    originalRingerMode = audioManager.ringerMode
+  }
+
+  private fun setRingerModeVibrate() {
     if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL) {
       val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
       audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
     }
   }
 
-  private fun onStop() {
-    stop()
-
+  private fun restoreRingerMode(onRestored: () -> Unit) {
     if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL) {
       val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
       CoroutineScope(Dispatchers.Default).launch {
-        delay(800)
+        delay(300)
         audioManager.ringerMode = originalRingerMode
+        onRestored()
       }
+    } else {
+      onRestored()
     }
   }
 }
