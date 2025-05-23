@@ -10,7 +10,9 @@ No dependency. All implementations use what the platform provides.
 | permission          | ✔️            |   ✔️        | ✔️           | ✔️      |     
 | language selection  | ✔️            |   ✔️        | ✔️           | ✔️      | ✔️    
 | punctuation         | ✔️            |   ✔️        | ✔️           |         |
-| grammars            | ✔️            |   ✔️        | ✔️           | ✔️      |
+| grammars            | ✔️*            |   ✔️        | ✔️           | ✔️*      |
+- *: seems to do nothing.
+- Specific platform features are not listed here.
 
 ## Platform Text-to-Speech parity matrix
 | Feature             | Android       | iOS          | macOS           | web       | Windows     
