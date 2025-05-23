@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import 'model/ios_audio_session.dart';
 import 'model/stt_recognition.dart';
 import 'model/stt_recognition_options.dart';
 import 'model/stt_state.dart';
@@ -11,6 +12,7 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   /// The method channel used to interact with the native platform.
   final _methodChannel = const MethodChannel('com.llfbandit.stt/methods');
   _SttAndroidImpl? _android;
+  _SttIosImpl? _ios;
   _SttWindowsImpl? _windows;
 
   @override
@@ -73,6 +75,15 @@ mixin SttMethodChannel implements SttMethodChannelPlatformInterface {
   }
 
   @override
+  SttIos? get ios {
+    if (kIsWeb || TargetPlatform.iOS != defaultTargetPlatform) return null;
+
+    _ios ??= _SttIosImpl(_methodChannel);
+
+    return _ios;
+  }
+
+  @override
   SttWindows? get windows {
     if (kIsWeb || TargetPlatform.windows != defaultTargetPlatform) return null;
 
@@ -119,6 +130,44 @@ class _SttAndroidImpl implements SttAndroid {
   Future<void> muteSystemSounds(bool mute) {
     return _methodChannel.invokeMethod<void>('android.muteSystemSounds', {
       'mute': mute,
+    });
+  }
+}
+
+class _SttIosImpl implements SttIos {
+  _SttIosImpl(this._methodChannel);
+
+  final MethodChannel _methodChannel;
+
+  @override
+  Future<void> manageAudioSession(bool manage) {
+    return _methodChannel.invokeMethod<void>(
+      'ios.manageAudioSession',
+      manage,
+    );
+  }
+
+  @override
+  Future<void> setAudioSessionActive(bool active) {
+    return _methodChannel.invokeMethod<void>(
+      'ios.setAudioSessionActive',
+      active,
+    );
+  }
+
+  @override
+  Future<void> setAudioSessionCategory({
+    IosAudioCategory category = IosAudioCategory.playAndRecord,
+    List<IosAudioCategoryOptions> options = const [
+      IosAudioCategoryOptions.duckOthers,
+      IosAudioCategoryOptions.defaultToSpeaker,
+      IosAudioCategoryOptions.allowBluetooth,
+      IosAudioCategoryOptions.allowBluetoothA2DP,
+    ],
+  }) {
+    return _methodChannel.invokeMethod<void>('ios.setAudioSessionCategory', {
+      'category': category.name,
+      'options': options.map((it) => it.name).toList(),
     });
   }
 }

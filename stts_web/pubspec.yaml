@@ -1,6 +1,6 @@
 name: stts_web
 description: Web specific implementation for stts package called by stts_platform_interface.
-version: 0.9.3
+version: 1.0.0
 homepage: https://github.com/llfbandit/stts/tree/master/stts_web
 
 environment:

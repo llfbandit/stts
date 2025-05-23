@@ -1,3 +1,4 @@
+export 'src/stt/model/ios_audio_session.dart';
 export 'src/stt/model/stt_recognition.dart';
 export 'src/stt/model/stt_recognition_options.dart';
 export 'src/stt/model/stt_state.dart';

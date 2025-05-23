@@ -228,5 +228,8 @@ class Stt extends SttPlatformInterface {
   SttAndroid? get android => null;
 
   @override
+  SttIos? get ios => null;
+
+  @override
   SttWindows? get windows => null;
 }

@@ -1,5 +1,6 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
+import 'model/ios_audio_session.dart';
 import 'model/stt_recognition.dart';
 import 'model/stt_recognition_options.dart';
 import 'model/stt_state.dart';
@@ -58,6 +59,11 @@ abstract class SttMethodChannelPlatformInterface {
   /// Returns [null] when not on Android platform.
   SttAndroid? get android;
 
+  /// iOS platform specific methods.
+  ///
+  /// Returns [null] when not on iOS platform.
+  SttIos? get ios;
+
   /// Windows platform specific methods.
   ///
   /// Returns [null] when not on Windows platform.
@@ -87,6 +93,33 @@ abstract class SttAndroid {
   ///
   /// This is a bit hacky, if the user pauses the app, the setting is kept.
   Future<void> muteSystemSounds(bool mute);
+}
+
+/// iOS platform specific methods.
+abstract class SttIos {
+  /// Activates or deactivates the management of iOS audio session.
+  ///
+  /// If `true`, the plugin will activate session and setup categories for you.
+  /// This may conflicts with current settings in your app if you already have external audio session management.
+  ///
+  /// If `false`, the audio session won't be touched.
+  ///
+  /// In both cases, usage of [setAudioSessionActive] and [setAudioSessionCategory] is allowed.
+  Future<void> manageAudioSession(bool manage);
+
+  /// Activates or deactivates your app’s audio session.
+  Future<void> setAudioSessionActive(bool active);
+
+  /// Sets the audio session’s category with the specified options.
+  Future<void> setAudioSessionCategory({
+    IosAudioCategory category = IosAudioCategory.playAndRecord,
+    List<IosAudioCategoryOptions> options = const [
+      IosAudioCategoryOptions.duckOthers,
+      IosAudioCategoryOptions.defaultToSpeaker,
+      IosAudioCategoryOptions.allowBluetooth,
+      IosAudioCategoryOptions.allowBluetoothA2DP,
+    ],
+  });
 }
 
 /// Windows platform specific methods.

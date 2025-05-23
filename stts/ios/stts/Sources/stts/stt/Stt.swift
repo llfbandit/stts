@@ -13,7 +13,7 @@ class SttRecognitionOptions {
   let punctuation: Bool
   let contextualStrings: [String]
   let taskHint: SFSpeechRecognitionTaskHint?
-
+  
   init(punctuation: Bool, contextualStrings: [String], taskHint: SFSpeechRecognitionTaskHint? = nil) {
     self.punctuation = punctuation
     self.contextualStrings = contextualStrings
@@ -54,6 +54,8 @@ class Stt {
   
   private var stateEventHandler: SttStateStreamHandler
   private var resultEventHandler: SttResultStreamHandler
+  
+  private var manageAudioSession = true
   
   init(stateEventHandler: SttStateStreamHandler, resultEventHandler: SttResultStreamHandler) {
     self.stateEventHandler = stateEventHandler
@@ -129,8 +131,24 @@ class Stt {
     }
   }
   
+  func manageAudioSession(_ manage: Bool) {
+    manageAudioSession = manage
+  }
+  
+  func setAudioSessionActive(_ active: Bool) throws {
+    let audioSession = AVAudioSession.sharedInstance()
+    try audioSession.setActive(active)
+  }
+  
+  func setAudioSessionCategory(_ category: AVAudioSession.Category, options: AVAudioSession.CategoryOptions) throws {
+    let audioSession = AVAudioSession.sharedInstance()
+    try audioSession.setCategory(category, options: options)
+  }
+  
   func dispose() {
     stop()
+    
+    manageAudioSession = true
   }
 
   private func prepareRecognition(_ options: SttRecognitionOptions) throws {
@@ -192,11 +210,10 @@ class Stt {
     self.recognizer = recognizer
 
     // setup audio
-    let audioSession = AVAudioSession.sharedInstance()
-    
-    try audioSession.setCategory(.playAndRecord,
-                                 options: [.duckOthers, .defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP])
-    try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
+    if manageAudioSession {
+      try setAudioSessionCategory(.playAndRecord, options: [.duckOthers, .defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP])
+      try setAudioSessionActive(true)
+    }
     
     let inputNode = audioEngine.inputNode
     let format = inputNode.inputFormat(forBus: 0)

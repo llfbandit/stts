@@ -1,3 +1,6 @@
+## 1.0.0
+* chore: Update to 1.0.0
+
 ## 0.9.3
 * fix: Platform interface version.
 

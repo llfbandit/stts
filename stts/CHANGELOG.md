@@ -1,4 +1,5 @@
-## 0.9.2
+## 1.0.0
+* feat(iOS/STT): Add audio session management.
 * fix(Windows): Throw `PlatformException` on error.
 * fix(Android/STT): Code cleanup with some improvement.
 * fix(iOS/macOS): Small code fixes/improvements.

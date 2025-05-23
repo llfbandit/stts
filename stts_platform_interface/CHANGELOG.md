@@ -1,3 +1,6 @@
+## 1.0.0
+* feat(iOS/STT): Add audio session management.
+
 ## 0.9.3
 * feat(STT): Add recognition options.
 

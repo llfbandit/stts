@@ -50,6 +50,10 @@ class _SttPageState extends State<SttPage> {
 
     // _stt.android?.muteSystemSounds(true);
 
+    // _stt.ios?.manageAudioSession(true);
+    // _stt.ios?.setAudioSessionCategory();
+    // _stt.ios?.setAudioSessionActive(true);
+
     _stateSubscription = _stt.onStateChanged.listen(
       (sttState) {
         setState(() => _started = sttState == SttState.start);
