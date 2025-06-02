@@ -46,7 +46,7 @@ class TtsMethodHandler {
       
     case "setVoice":
       let args = call.arguments as! [String: Any]
-      let voice = args["voice"] as! String
+      let voice = args["voiceId"] as! String
       
       tts.setVoice(voice)
       result(nil)

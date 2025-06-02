@@ -1,5 +1,7 @@
 ## next
 * fix(Android/TTS): Double implicit cast error.
+* fix(iOS/TTS): Crash when setting voice.
+* fix(macOS/TTS): Crash when setting voice.
 
 ## 1.0.0
 * feat(iOS/STT): Add audio session management.
