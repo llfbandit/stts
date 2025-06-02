@@ -1,4 +1,4 @@
-## next
+## 1.0.1
 * fix(Android/TTS): Double implicit cast error.
 * fix(iOS/TTS): Crash when setting voice.
 * fix(macOS/TTS): Crash when setting voice.
