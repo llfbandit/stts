@@ -90,22 +90,22 @@ class TtsMethodHandler(private val tts: Tts) : MethodCallHandler {
       }
 
       "setPitch" -> {
-        callOrError<Float>(call, result, "pitch", onCall = { pitch ->
-          tts.setPitch(pitch)
+        callOrError<Double>(call, result, "pitch", onCall = { pitch ->
+          tts.setPitch(pitch.toFloat())
           result.success(null)
         })
       }
 
       "setRate" -> {
-        callOrError<Float>(call, result, "rate", onCall = { rate ->
-          tts.setRate(rate)
+        callOrError<Double>(call, result, "rate", onCall = { rate ->
+          tts.setRate(rate.toFloat())
           result.success(null)
         })
       }
 
       "setVolume" -> {
-        callOrError<Float>(call, result, "volume", onCall = { volume ->
-          tts.setVolume(volume)
+        callOrError<Double>(call, result, "volume", onCall = { volume ->
+          tts.setVolume(volume.toFloat())
           result.success(null)
         })
       }

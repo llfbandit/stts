@@ -1,3 +1,6 @@
+## next
+* fix(Android/TTS): Double implicit cast error.
+
 ## 1.0.0
 * feat(iOS/STT): Add audio session management.
 * fix(Windows): Throw `PlatformException` on error.
