@@ -45,7 +45,7 @@ class SttRecognitionOptions {
 }
 
 class Stt {
-  private var currentLocale: Locale = Locale.current
+  private var currentLanguage = Locale.preferredLanguages[0]
   
   private let audioEngine = AVAudioEngine()
   private var recognizer: SFSpeechRecognizer?
@@ -65,12 +65,12 @@ class Stt {
   }
   
   func getLanguage() -> String {
-    return currentLocale.identifier
+    return currentLanguage
   }
   
   func setLanguage(_ language: String) {
     if let language = getLanguages().first(where: { $0 == language }) {
-      currentLocale = Locale(identifier: language)
+      currentLanguage = language
     }
   }
   
@@ -126,7 +126,7 @@ class Stt {
   }
   
   private func prepareRecognition(_ options: SttRecognitionOptions) throws {
-    let recognizer = SFSpeechRecognizer(locale: currentLocale)
+    let recognizer = SFSpeechRecognizer(locale: Locale(identifier: currentLanguage))
     guard let recognizer else {
       throw SttError.error("Failed to create recognizer.")
     }

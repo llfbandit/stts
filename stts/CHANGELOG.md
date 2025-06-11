@@ -1,3 +1,6 @@
+## 1.0.2
+* fix(iOS/macOS/STT): Properly initialize default language.
+
 ## 1.0.1
 * fix(Android/TTS): Double implicit cast error.
 * fix(iOS/TTS): Crash when setting voice.
