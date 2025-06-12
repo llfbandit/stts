@@ -1,5 +1,6 @@
 ## 1.1.0
 * feat(TTS): Add queue flush option.
+* fix(Android/STT): Increase delay by 100ms for `muteSystemSounds`. Ends of sounds were sometimes hearable.
 
 ## 1.0.2
 * fix(iOS/macOS/STT): Properly initialize default language.

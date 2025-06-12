@@ -219,7 +219,7 @@ class Stt(
       val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
       CoroutineScope(Dispatchers.Default).launch {
-        delay(300)
+        delay(400)
         audioManager.ringerMode = originalRingerMode
         onRestored()
       }
