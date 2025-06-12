@@ -1,7 +1,7 @@
 name: stts_platform_interface
 description: A common interface for the stts package to call dedicated platforms with method channel.
 homepage: https://github.com/llfbandit/stts/tree/master/stts_platform_interface
-version: 1.0.0
+version: 1.1.0
 
 environment:
   sdk: ^3.3.0

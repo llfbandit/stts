@@ -1,3 +1,6 @@
+## 1.1.0
+* feat(TTS): Add queue flush option.
+
 ## 1.0.2
 * fix(iOS/macOS/STT): Properly initialize default language.
 

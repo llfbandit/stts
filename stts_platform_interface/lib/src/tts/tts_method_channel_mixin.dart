@@ -1,7 +1,6 @@
 import 'package:flutter/services.dart';
 
-import 'model/tts_state.dart';
-import 'model/tts_voice.dart';
+import 'model/model.dart';
 import 'tts_platform_interface.dart';
 
 /// An implementation of [TtsPlatform] that uses method channels.
@@ -16,9 +15,13 @@ mixin TtsMethodChannel implements TtsMethodChannelPlatformInterface {
   }
 
   @override
-  Future<void> start(String text) {
+  Future<void> start(
+    String text, {
+    TtsOptions options = const TtsOptions(),
+  }) {
     return _methodChannel.invokeMethod<void>('start', {
       'text': text,
+      'mode': options.mode.name,
     });
   }
 

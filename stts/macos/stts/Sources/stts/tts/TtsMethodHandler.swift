@@ -15,8 +15,9 @@ class TtsMethodHandler {
     case "start":
       let args = call.arguments as! [String: Any]
       let text = args["text"] as! String
+      let mode = args["mode"] as! String
 
-      tts.start(text)
+      tts.start(text, mode: TtsQueueMode(rawValue: mode)!)
       result(nil)
 
     case "stop":

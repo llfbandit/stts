@@ -33,7 +33,7 @@ namespace stts {
 
 		bool IsSupported();
 
-		void Start(std::string text);
+		void Start(std::string text, std::string mode);
 		void Stop();
 		void Pause();
 		void Resume();

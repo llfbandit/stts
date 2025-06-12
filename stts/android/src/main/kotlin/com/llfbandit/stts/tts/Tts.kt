@@ -7,6 +7,7 @@ import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
 import com.llfbandit.stts.tts.model.TtsError
+import com.llfbandit.stts.tts.model.TtsQueueMode
 import com.llfbandit.stts.tts.model.TtsState
 import com.llfbandit.stts.tts.stream.TtsStateStreamHandler
 import java.util.UUID
@@ -21,7 +22,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
   private var isSupported = false
   private val utterances = ArrayList<UtteranceInfo>()
   private var utteranceLastPosition = 0
-  private var pauseRequested = false
+  private var utterancePaused = false
 
   fun create(onResult: () -> Unit) {
     if (tts == null) {
@@ -37,31 +38,37 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     return isSupported
   }
 
-  fun start(text: String) {
+  fun start(text: String, queueMode: TtsQueueMode) {
     if (!isSupported()) return
+
+    if (queueMode == TtsQueueMode.Flush) {
+      resetUtteranceInfos()
+    }
 
     val id = UUID.randomUUID().toString()
     utterances.add(UtteranceInfo(id, text))
 
-    if (pauseRequested) {
+    if (utterancePaused) {
       resume()
     } else {
-      speak(text, id)
+      speak(text, id, queueMode)
     }
   }
 
   fun pause() {
     if (!isSupported()) return
 
-    pauseRequested = true
-    tts?.stop()
-    ttsStateStreamHandler.sendEvent(TtsState.Pause)
+    if (tts?.isSpeaking == true) {
+      utterancePaused = true
+      tts?.stop()
+      ttsStateStreamHandler.sendEvent(TtsState.Pause)
+    }
   }
 
   fun resume() {
     if (!isSupported()) return
 
-    pauseRequested = false
+    utterancePaused = false
     if (utterances.isEmpty()) return
 
     // Replay first utterance from last known position
@@ -80,9 +87,8 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     if (!isSupported()) return
 
     tts?.stop()
-    utterances.clear()
-    utteranceLastPosition = 0
-    pauseRequested = false
+
+    resetUtteranceInfos()
 
     ttsStateStreamHandler.sendEvent(TtsState.Stop)
   }
@@ -155,6 +161,8 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
 
     tts?.shutdown()
     tts = null
+
+    volume = 1.0f
   }
 
   private fun onInit(status: Int, onResult: () -> Unit = {}) {
@@ -171,11 +179,22 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     onResult()
   }
 
-  private fun speak(text: String, utteranceId: String) {
+  private fun speak(text: String, utteranceId: String, queueMode: TtsQueueMode = TtsQueueMode.Add) {
     val params = Bundle()
     params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
 
-    tts?.speak(text, TextToSpeech.QUEUE_ADD, params, utteranceId)
+    tts?.speak(
+      text,
+      if (queueMode == TtsQueueMode.Add) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH,
+      params,
+      utteranceId
+    )
+  }
+
+  private fun resetUtteranceInfos() {
+    utterances.clear()
+    utteranceLastPosition = 0
+    utterancePaused = false
   }
 
   private val utteranceProgressListener = object : UtteranceProgressListener() {

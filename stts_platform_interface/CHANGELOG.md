@@ -1,3 +1,6 @@
+## 1.1.0
+* feat(TTS): Add queue flush option.
+
 ## 1.0.0
 * feat(iOS/STT): Add audio session management.
 

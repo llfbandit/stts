@@ -1,6 +1,6 @@
 name: stts_web
 description: Web specific implementation for stts package called by stts_platform_interface.
-version: 1.0.0
+version: 1.1.0
 homepage: https://github.com/llfbandit/stts/tree/master/stts_web
 
 environment:
@@ -13,7 +13,7 @@ dependencies:
   flutter_web_plugins:
     sdk: flutter
 
-  stts_platform_interface: ^1.0.0
+  stts_platform_interface: ^1.1.0
   web: ^1.0.0
 
 dev_dependencies:

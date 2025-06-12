@@ -2,21 +2,22 @@ import Flutter
 
 class TtsMethodHandler {
   private let tts: Tts
-  
+
   init(_ tts: Tts) {
     self.tts = tts
   }
-  
+
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
     case "isSupported":
       result(tts.isSupported())
-      
+
     case "start":
       let args = call.arguments as! [String: Any]
       let text = args["text"] as! String
+      let mode = args["mode"] as! String
 
-      tts.start(text)
+      tts.start(text, mode: TtsQueueMode(rawValue: mode)!)
       result(nil)
 
     case "stop":
@@ -40,7 +41,7 @@ class TtsMethodHandler {
       
       tts.setLanguage(language)
       result(nil)
-      
+
     case "getLanguages":
       result(tts.getLanguages())
       

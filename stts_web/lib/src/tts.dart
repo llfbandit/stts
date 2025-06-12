@@ -31,8 +31,15 @@ class Tts extends TtsPlatformInterface {
   Future<bool> isSupported() async => _isSupported();
 
   @override
-  Future<void> start(String text) async {
+  Future<void> start(
+    String text, {
+    TtsOptions options = const TtsOptions(),
+  }) async {
     if (!_isSupported()) return;
+
+    if (options.mode == TtsQueueMode.flush) {
+      _stop();
+    }
 
     final utterance = _addUtterance(text);
 
@@ -45,13 +52,7 @@ class Tts extends TtsPlatformInterface {
 
   @override
   Future<void> stop() async {
-    if (!_isSupported()) return;
-
-    _synth.cancel();
-
-    _utterances.clear();
-    _utteranceLastPosition = 0;
-    _pauseRequested = false;
+    _stop();
 
     _updateState(TtsState.stop);
   }
@@ -212,6 +213,17 @@ class Tts extends TtsPlatformInterface {
     }
 
     return _supported;
+  }
+
+  /// Stops synth and resets variable members with out firing stop event.
+  void _stop() {
+    if (!_isSupported()) return;
+
+    _synth.cancel();
+
+    _utterances.clear();
+    _utteranceLastPosition = 0;
+    _pauseRequested = false;
   }
 
   SpeechSynthesis get _synth => window.speechSynthesis;

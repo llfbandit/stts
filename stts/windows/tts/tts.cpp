@@ -41,13 +41,19 @@ namespace stts {
         }
     }
 
-    void Tts::Start(std::string text)
+    void Tts::Start(std::string text, std::string mode)
     {
         ThrowIfFailed(CreateVoice());
 
         const std::string pitchXml = "<pitch absmiddle=\"" + std::to_string(m_pitch) + "\"/>";
 
-        ThrowIfFailed(m_pVoice->Speak(Utf16FromUtf8(pitchXml + text).c_str(), SPDF_PRONUNCIATION | SPF_ASYNC | SPF_IS_XML, NULL));
+        DWORD flags = SPDF_PRONUNCIATION | SPF_ASYNC | SPF_IS_XML;
+        if (mode.compare("flush") == 0)
+        {
+            flags |= SPF_PURGEBEFORESPEAK;
+        }
+
+        ThrowIfFailed(m_pVoice->Speak(Utf16FromUtf8(pitchXml + text).c_str(), flags, NULL));
 
         m_utteranceQueued++;
 

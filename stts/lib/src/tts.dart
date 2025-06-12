@@ -11,10 +11,13 @@ class Tts extends TtsPlatformInterface {
   Future<bool> isSupported() => _tts.isSupported();
 
   @override
-  Future<void> start(String text) {
+  Future<void> start(
+    String text, {
+    TtsOptions options = const TtsOptions(),
+  }) {
     if (text.isEmpty) return Future.value();
 
-    return _safeCall(() => _tts.start(text));
+    return _safeCall(() => _tts.start(text, options: options));
   }
 
   @override

@@ -10,6 +10,11 @@ enum TtsState: Int {
   case pause = 2
 }
 
+enum TtsQueueMode: String {
+  case flush
+  case add
+}
+
 extension Comparable {
   func clamp(_ f: Self, _ t: Self) -> Self {
     if self < f { return f }
@@ -41,12 +46,18 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     return true
   }
   
-  func start(_ text: String) {
+  func start(_ text: String, mode: TtsQueueMode) {
     if synthesizer == nil {
       synthesizer = AVSpeechSynthesizer()
       synthesizer?.delegate = self
     }
-    
+
+    if mode == TtsQueueMode.flush {
+      synthesizer?.delegate = nil
+      stop()
+      synthesizer?.delegate = self
+    }
+
     let utterance = AVSpeechUtterance(string: text)
     utterance.pitchMultiplier = pitch
     utterance.rate = rate
@@ -82,7 +93,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   func setPitch(_ pitch: Float) {
     self.pitch = pitch.clamp(0.5, 2.0)
   }
-  
+
   func setRate(_ rate: Float) {
     // speech rate is scaled from 0x to 1x with values [0, 0.5]
     // speech rate is scaled from 1x to 4x with values [0.5, 1.0]

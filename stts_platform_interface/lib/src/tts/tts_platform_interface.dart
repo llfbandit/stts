@@ -1,5 +1,4 @@
-import 'model/tts_state.dart';
-import 'model/tts_voice.dart';
+import 'model/model.dart';
 import 'tts_platform.dart';
 
 /// Text-to-Speech platform interface
@@ -20,8 +19,13 @@ abstract class TtsMethodChannelPlatformInterface {
 
   /// Enqueues and starts an utterance from the given [text].
   ///
+  /// Refer to [TtsOptions] for available options.
+  ///
   /// Refer to [onStateChanged] for accurate state.
-  Future<void> start(String text);
+  Future<void> start(
+    String text, {
+    TtsOptions options = const TtsOptions(),
+  });
 
   /// Stops and clears all utterances.
   ///

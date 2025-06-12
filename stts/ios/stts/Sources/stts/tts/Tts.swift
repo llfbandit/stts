@@ -10,6 +10,11 @@ enum TtsState: Int {
   case pause = 2
 }
 
+enum TtsQueueMode: String {
+  case flush
+  case add
+}
+
 extension Comparable {
   func clamp(_ f: Self, _ t: Self) -> Self {
     if self < f { return f }
@@ -41,7 +46,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     return true
   }
   
-  func start(_ text: String) {
+  func start(_ text: String, mode: TtsQueueMode) {
     if synthesizer == nil {
       synthesizer = AVSpeechSynthesizer()
       
@@ -49,6 +54,12 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
         synthesizer?.usesApplicationAudioSession = false
       }
       
+      synthesizer?.delegate = self
+    }
+
+    if mode == TtsQueueMode.flush {
+      synthesizer?.delegate = nil
+      stop()
       synthesizer?.delegate = self
     }
     
@@ -202,6 +213,6 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
     utteranceQueued = 0
-    ttsStateEventHandler.sendEvent(TtsState.stop)
+    ttsStateEventHandler.sendEvent(TtsState.stop)    
   }
 }

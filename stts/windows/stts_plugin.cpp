@@ -187,10 +187,12 @@ namespace stts {
 			const auto* mapArgs = std::get_if<flutter::EncodableMap>(args);
 			std::string text;
 			GetValueFromEncodableMap(mapArgs, "text", text);
+			std::string mode;
+			GetValueFromEncodableMap(mapArgs, "mode", mode);
 
 			try
 			{
-				mTts->Start(text);
+				mTts->Start(text, mode);
 				result->Success(flutter::EncodableValue(NULL));
 			}
 			catch (HRESULT hr) {
