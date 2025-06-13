@@ -20,6 +20,7 @@ list(APPEND PLUGIN_SOURCES
   "stt/stt.h"
   "tts/tts.cpp"
   "tts/tts.h"
+  "tts/tts_options.h"
   "utils.h"
   "event_stream_handler.h"
 )

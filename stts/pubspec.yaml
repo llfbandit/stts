@@ -19,7 +19,7 @@ dependencies:
     sdk: flutter
 
   stts_platform_interface: ^1.1.0
-  stts_web: ^1.0.0
+  stts_web: ^1.1.0
 
 dev_dependencies:
   flutter_test:

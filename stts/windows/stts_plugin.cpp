@@ -187,12 +187,12 @@ namespace stts {
 			const auto* mapArgs = std::get_if<flutter::EncodableMap>(args);
 			std::string text;
 			GetValueFromEncodableMap(mapArgs, "text", text);
-			std::string mode;
-			GetValueFromEncodableMap(mapArgs, "mode", mode);
+
+			auto options = GetTtsOptions(mapArgs);
 
 			try
 			{
-				mTts->Start(text, mode);
+				mTts->Start(text, std::move(options));
 				result->Success(flutter::EncodableValue(NULL));
 			}
 			catch (HRESULT hr) {
@@ -392,6 +392,24 @@ namespace stts {
 	{
 		_com_error err(hr);
 		return Utf8FromUtf16(err.ErrorMessage());
+	}
+
+	std::unique_ptr<TtsOptions> SttsPlugin::GetTtsOptions(const EncodableMap* args)
+	{
+		std::string mode;
+		GetValueFromEncodableMap(args, "mode", mode);
+		int preSilenceMs;
+		GetValueFromEncodableMap(args, "preSilence", preSilenceMs);
+		int postSilenceMs;
+		GetValueFromEncodableMap(args, "postSilence", postSilenceMs);
+
+		auto options = std::make_unique<TtsOptions>(
+			mode,
+			preSilenceMs,
+			postSilenceMs
+		);
+
+		return options;
 	}
 
 }  // namespace stts

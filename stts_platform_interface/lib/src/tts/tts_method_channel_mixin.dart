@@ -22,6 +22,10 @@ mixin TtsMethodChannel implements TtsMethodChannelPlatformInterface {
     return _methodChannel.invokeMethod<void>('start', {
       'text': text,
       'mode': options.mode.name,
+      if (options.preSilence case final silence?)
+        'preSilence': silence.inMilliseconds,
+      if (options.postSilence case final silence?)
+        'postSilence': silence.inMilliseconds,
     });
   }
 

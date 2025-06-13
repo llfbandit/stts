@@ -157,9 +157,9 @@ class _TtsPageState extends State<TtsPage> {
                   ],
                   if (_ttsState == TtsState.stop) ...[
                     TextButton(
-                      onPressed: () {
+                      onPressed: () async {
                         for (var text in _texts) {
-                          _tts.start(text);
+                          await _tts.start(text);
                         }
                       },
                       child: Text('Start'),

@@ -7,15 +7,20 @@ import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
 import com.llfbandit.stts.tts.model.TtsError
+import com.llfbandit.stts.tts.model.TtsOptions
 import com.llfbandit.stts.tts.model.TtsQueueMode
 import com.llfbandit.stts.tts.model.TtsState
 import com.llfbandit.stts.tts.stream.TtsStateStreamHandler
 import java.util.UUID
 
-data class UtteranceInfo(val id: String, val text: String)
+data class UtteranceInfo(val id: String, val text: String, val silenceMs: Long? = null)
 
 class Tts(private val context: Context, private val ttsStateStreamHandler: TtsStateStreamHandler) {
-  private val logTag = "Tts"
+  companion object {
+    private const val LOG_TAG = "Tts"
+    private const val SIL_PRE = "SIL_PRE_"
+    private const val SIL_POST = "SIL_POST_"
+  }
 
   private var tts: TextToSpeech? = null
   private var volume = 1.0f
@@ -32,26 +37,43 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
 
   fun isSupported(): Boolean {
     if (!isSupported) {
-      Log.e(logTag, "TTS is not supported.")
+      Log.e(LOG_TAG, "TTS is not supported.")
     }
 
     return isSupported
   }
 
-  fun start(text: String, queueMode: TtsQueueMode) {
+  fun start(text: String, options: TtsOptions) {
     if (!isSupported()) return
 
-    if (queueMode == TtsQueueMode.Flush) {
+    if (options.queueMode == TtsQueueMode.Flush) {
       resetUtteranceInfos()
     }
 
     val id = UUID.randomUUID().toString()
-    utterances.add(UtteranceInfo(id, text))
+
+    val utteranceBlocks = ArrayList<UtteranceInfo>()
+
+    if (options.preSilenceMs != null) {
+      utteranceBlocks.add(UtteranceInfo(SIL_PRE + id, "", options.preSilenceMs.toLong()))
+    }
+
+    utteranceBlocks.add(UtteranceInfo(id, text))
+
+    if (options.postSilenceMs != null) {
+      utteranceBlocks.add(UtteranceInfo(SIL_POST + id, "", options.postSilenceMs.toLong()))
+    }
+
+    utterances.addAll(utteranceBlocks)
 
     if (utterancePaused) {
       resume()
     } else {
-      speak(text, id, queueMode)
+      // Only the first utterance of this sequence takes queue mode, further utterances are enqueued
+      speak(utteranceBlocks[0], options.queueMode)
+      for (i in 1 until utteranceBlocks.size) {
+        speak(utteranceBlocks[i])
+      }
     }
   }
 
@@ -72,15 +94,15 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     if (utterances.isEmpty()) return
 
     // Replay first utterance from last known position
-    if (utteranceLastPosition != 0) {
-      val info = utterances[0]
+    val info = utterances[0]
+    if (utteranceLastPosition != 0 && info.text.isNotEmpty() && info.silenceMs == null) {
       utterances[0] = UtteranceInfo(
         info.id,
         info.text.substring(utteranceLastPosition.coerceIn(0, info.text.length - 1))
       )
     }
 
-    utterances.forEach { (id, text) -> speak(text, id) }
+    utterances.forEach { speak(it) }
   }
 
   fun stop() {
@@ -169,7 +191,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     isSupported = status == TextToSpeech.SUCCESS
 
     if (!isSupported) {
-      Log.e(logTag, "TTS Initialisation failed")
+      Log.e(LOG_TAG, "TTS Initialisation failed")
       ttsStateStreamHandler.sendErrorEvent(TtsError(-1, "initialisation"))
     } else {
       // (re-)create config in case of dispose.
@@ -179,16 +201,21 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     onResult()
   }
 
-  private fun speak(text: String, utteranceId: String, queueMode: TtsQueueMode = TtsQueueMode.Add) {
-    val params = Bundle()
-    params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
+  private fun speak(utterance: UtteranceInfo, queueMode: TtsQueueMode = TtsQueueMode.Add) {
+    val queue = if (queueMode == TtsQueueMode.Add) {
+      TextToSpeech.QUEUE_ADD
+    } else {
+      TextToSpeech.QUEUE_FLUSH
+    }
 
-    tts?.speak(
-      text,
-      if (queueMode == TtsQueueMode.Add) TextToSpeech.QUEUE_ADD else TextToSpeech.QUEUE_FLUSH,
-      params,
-      utteranceId
-    )
+    if (utterance.silenceMs != null) {
+      tts?.playSilentUtterance(utterance.silenceMs, queue, utterance.id)
+    } else {
+      val params = Bundle()
+      params.putFloat(TextToSpeech.Engine.KEY_PARAM_VOLUME, volume)
+
+      tts?.speak(utterance.text, queue, params, utterance.id)
+    }
   }
 
   private fun resetUtteranceInfos() {
@@ -228,7 +255,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
         else -> TtsError(errorCode, "unknown")
       }
 
-      Log.e(logTag, "TTS error: $errorCode - ${error.message} error.")
+      Log.e(LOG_TAG, "TTS error: $errorCode - ${error.message} error.")
       ttsStateStreamHandler.sendErrorEvent(error)
       stop()
     }

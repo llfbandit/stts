@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include "../event_stream_handler.h"
+#include "tts_options.h"
 
 #include <sapi.h>
 #pragma warning(disable:4996)
@@ -33,7 +34,7 @@ namespace stts {
 
 		bool IsSupported();
 
-		void Start(std::string text, std::string mode);
+		void Start(std::string text, std::unique_ptr<TtsOptions> options);
 		void Stop();
 		void Pause();
 		void Resume();

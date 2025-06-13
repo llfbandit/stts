@@ -8,6 +8,7 @@
 #include <memory>
 #include "stt/stt.h"
 #include "tts/tts.h"
+#include "tts/tts_options.h"
 
 namespace stts {
 
@@ -38,6 +39,7 @@ private:
     std::unique_ptr<Tts> mTts;
 
     std::string ttsVoiceGenderToString(TtsVoiceGender gender);
+    std::unique_ptr<TtsOptions> GetTtsOptions(const EncodableMap* args);
 
     std::string GetErrorMessage(HRESULT hr);
 };

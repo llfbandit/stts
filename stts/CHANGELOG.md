@@ -1,5 +1,6 @@
 ## 1.1.0
 * feat(TTS): Add queue flush option.
+* feat(TTS): Add pre/post silence delay option.
 * fix(Android/STT): Increase delay by 100ms for `muteSystemSounds`. Ends of sounds were sometimes hearable.
 
 ## 1.0.2

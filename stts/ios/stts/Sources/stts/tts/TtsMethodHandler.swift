@@ -17,7 +17,13 @@ class TtsMethodHandler {
       let text = args["text"] as! String
       let mode = args["mode"] as! String
 
-      tts.start(text, mode: TtsQueueMode(rawValue: mode)!)
+      let options = TtsOptions(
+        queueMode: TtsQueueMode(rawValue: mode)!,
+        preSilenceMs: args["preSilence"] as? Int,
+        postSilenceMs: args["postSilence"] as? Int
+      )
+
+      tts.start(text, options: options)
       result(nil)
 
     case "stop":

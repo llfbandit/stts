@@ -1,5 +1,6 @@
 package com.llfbandit.stts.tts
 
+import com.llfbandit.stts.tts.model.TtsOptions
 import com.llfbandit.stts.tts.model.TtsQueueMode
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
@@ -39,8 +40,13 @@ class TtsMethodHandler(private val tts: Tts) : MethodCallHandler {
       "start" -> {
         val text = call.argument<String>("text")!!
         val queueMode = call.argument<String>("mode")!!
+        val options = TtsOptions(
+          TtsQueueMode.valueOf(queueMode.replaceFirstChar { it.uppercaseChar() }),
+          call.argument<Int>("preSilence"),
+          call.argument<Int>("postSilence")
+        )
 
-        tts.start(text, TtsQueueMode.valueOf(queueMode.replaceFirstChar { it.uppercaseChar() }))
+        tts.start(text, options)
         result.success(null)
       }
 
