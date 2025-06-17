@@ -1,3 +1,6 @@
+## 1.1.2
+* fix(ios/macos/TTS): Event firing when stressing the plugin.
+
 ## 1.1.1
 * fix(ios/macos/TTS): Event firing when stressing the plugin.
 
@@ -25,6 +28,5 @@
 * feat(STT): Add recognition options.
 
 ## 0.9.0
-
 * Supports all platforms but linux.
 * Beta stage.

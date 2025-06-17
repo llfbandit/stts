@@ -47,6 +47,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   private var rate: Float = 1.0 // 0.1 - 10.0
   private var volume: Float = 1.0 // 0.0 - 1.0
   private var voiceId: String?
+  private var utteranceQueued = 0
   
   init(_ ttsStateEventHandler: TtsStateStreamHandler) {
     self.ttsStateEventHandler = ttsStateEventHandler
@@ -72,6 +73,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     if options.queueMode == TtsQueueMode.flush {
+      utteranceQueued = 0
       synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
     }
 
@@ -95,6 +97,8 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     resume()
 
+    utteranceQueued += 1
+
     synthesizer?.speak(utterance)
     ttsStateEventHandler.sendEvent(TtsState.start)
   }
@@ -103,6 +107,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
     ttsStateEventHandler.sendEvent(TtsState.stop)
 
+    utteranceQueued = 0
     synthesizer?.delegate = nil
     synthesizer = nil
   }
@@ -190,6 +195,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     setRate(1.0)
     volume = 1.0
     voiceId = nil
+    utteranceQueued = 0
   }
   
   private func mapVoice(_ voice: AVSpeechSynthesisVoice) -> [String: Any] {
@@ -234,7 +240,9 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     // Delay stop because of postUtteranceDelay not taken into account
     DispatchQueue.main.asyncAfter(deadline: .now() + defaultShift + utterance.postUtteranceDelay) {
-      if !synthesizer.isSpeaking {
+      self.utteranceQueued -= 1
+
+      if self.utteranceQueued == 0 {
         self.ttsStateEventHandler.sendEvent(TtsState.stop)
       }
     }
