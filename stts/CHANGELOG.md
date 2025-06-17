@@ -1,3 +1,6 @@
+## 1.1.1
+* fix(ios/macos/TTS): Event firing when stressing the plugin.
+
 ## 1.1.0
 * feat(TTS): Add queue flush option.
 * feat(TTS): Add pre/post silence delay option.
