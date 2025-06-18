@@ -23,7 +23,7 @@ public class SttsPlugin: NSObject, FlutterPlugin {
     let instance = SttsPlugin(
       sttStateEventHandler: sttStateEventHandler,
       sttResultEventHandler: sttResultEventHandler,
-      ttsStateEventHandler: ttsStateEventHandler,
+      ttsStateEventHandler: ttsStateEventHandler
     )
 
     sttMethodChannel.setMethodCallHandler(SttMethodHandler(instance.stt).handle)

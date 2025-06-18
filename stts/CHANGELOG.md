@@ -1,8 +1,11 @@
+## next
+* fix(iOS/macOS): compilation issue under some circumstances.
+
 ## 1.1.2
-* fix(ios/macos/TTS): Event firing when stressing the plugin.
+* fix(iOS/macOS/TTS): Event firing when stressing the plugin.
 
 ## 1.1.1
-* fix(ios/macos/TTS): Event firing when stressing the plugin.
+* fix(iOS/macOS/TTS): Event firing when stressing the plugin.
 
 ## 1.1.0
 * feat(TTS): Add queue flush option.
