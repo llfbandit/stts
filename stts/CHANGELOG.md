@@ -1,3 +1,6 @@
+## 1.2.3
+* fix(iOS/macOS/TTS): Event firing regression.
+
 ## 1.2.2
 * fix(iOS/macOS/TTS): Event firing regression.
 

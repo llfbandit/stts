@@ -2,7 +2,7 @@ import FlutterMacOS
 
 class TtsStateStreamHandler: NSObject, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?
-  private var currentState = TtsState.stop
+  var currentState = TtsState.stop
   
   public func onListen(
     withArguments arguments: Any?,

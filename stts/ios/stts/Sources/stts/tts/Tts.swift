@@ -49,7 +49,6 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   private var voiceId: String?
   private var utteranceQueued = 0
   private var utteranceFinishTimer: Timer?
-  private var utteranceFinishIgnored = false
   
   init(_ ttsStateEventHandler: TtsStateStreamHandler) {
     self.ttsStateEventHandler = ttsStateEventHandler
@@ -70,22 +69,16 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
       if #available(iOS 13.0, *) {
         synthesizer?.usesApplicationAudioSession = false
       }
-      
+
       synthesizer?.delegate = self
     }
 
-    if options.queueMode == TtsQueueMode.flush {
+    if options.queueMode == TtsQueueMode.flush && ttsStateEventHandler.currentState != .stop {
       utteranceQueued = 0
-      let isSpeaking = utteranceFinishTimer?.isValid ?? false
       utteranceFinishTimer?.invalidate()
 
       DispatchQueue.global(qos: .background).async {
-        guard let synth = self.synthesizer else { return }
-
-        if isSpeaking {
-          self.utteranceFinishIgnored = true
-          synth.stopSpeaking(at: AVSpeechBoundary.immediate)
-        }
+        self.synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
       }
     }
 
@@ -111,6 +104,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     DispatchQueue.global(qos: .background).async {
       self.synthesizer?.speak(utterance)
+      self.synthesizer?.continueSpeaking()
       self.ttsStateEventHandler.sendEvent(TtsState.start)
     }
   }
@@ -121,7 +115,6 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     utteranceQueued = 0
     utteranceFinishTimer?.invalidate()
-    utteranceFinishIgnored = false
 
     synthesizer?.delegate = nil
     synthesizer = nil
@@ -217,6 +210,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     volume = 1.0
     voiceId = nil
     utteranceQueued = 0
+    ttsStateEventHandler.currentState = .stop
   }
   
   private func mapVoice(_ voice: AVSpeechSynthesisVoice) -> [String: Any] {
@@ -256,10 +250,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   }
   
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-    if utteranceFinishIgnored {
-      utteranceFinishIgnored = false
-      return
-    }
+    if utteranceQueued == 0 { return }
 
     // Delay slightly stop because this event is fired too soon!
     let defaultShift = 0.2
