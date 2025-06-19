@@ -76,12 +76,13 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     if options.queueMode == TtsQueueMode.flush {
       utteranceQueued = 0
+      let isSpeaking = utteranceFinishTimer?.isValid ?? false
       utteranceFinishTimer?.invalidate()
 
       DispatchQueue.global(qos: .background).async {
         guard let synth = self.synthesizer else { return }
 
-        if synth.isSpeaking {
+        if isSpeaking {
           self.utteranceFinishIgnored = true
           synth.stopSpeaking(at: AVSpeechBoundary.immediate)
         }
