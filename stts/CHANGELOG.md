@@ -1,3 +1,6 @@
+## 1.2.1
+* fix(iOS/macOS/TTS): Event firing regression.
+
 ## 1.2.0
 * feat(STT): Allow online usage.
 * fix(iOS/macOS): compilation issue under some circumstances.

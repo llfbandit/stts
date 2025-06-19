@@ -1,6 +1,6 @@
 name: stts
 description: "Speech-to-Text and Text-to-Speech plugin. Offline first."
-version: 1.2.0
+version: 1.2.1
 homepage: https://github.com/llfbandit/stts
 
 topics:
