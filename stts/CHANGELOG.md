@@ -1,6 +1,7 @@
 ## next
 * fix(iOS/macOS): compilation issue under some circumstances.
 * fix(iOS/macOS/TTS): Event firing when stressing the plugin.
+* fix(iOS/macOS/TTS): Stay away from UI thread.
 
 ## 1.1.2
 * fix(iOS/macOS/TTS): Event firing when stressing the plugin.
