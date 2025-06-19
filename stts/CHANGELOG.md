@@ -1,5 +1,6 @@
 ## next
 * fix(iOS/macOS): compilation issue under some circumstances.
+* fix(iOS/macOS/TTS): Event firing when stressing the plugin.
 
 ## 1.1.2
 * fix(iOS/macOS/TTS): Event firing when stressing the plugin.

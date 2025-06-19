@@ -48,6 +48,8 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   private var volume: Float = 1.0 // 0.0 - 1.0
   private var voiceId: String?
   private var utteranceQueued = 0
+  private var utteranceFinishTimer: Timer?
+  private var utteranceFinishIgnored = false
   
   init(_ ttsStateEventHandler: TtsStateStreamHandler) {
     self.ttsStateEventHandler = ttsStateEventHandler
@@ -74,6 +76,9 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     if options.queueMode == TtsQueueMode.flush {
       utteranceQueued = 0
+      utteranceFinishTimer?.invalidate()
+      utteranceFinishIgnored = true
+
       synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
     }
 
@@ -95,8 +100,6 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
       utterance.voice = AVSpeechSynthesisVoice(language: language)
     }
 
-    resume()
-
     utteranceQueued += 1
 
     synthesizer?.speak(utterance)
@@ -108,6 +111,9 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     ttsStateEventHandler.sendEvent(TtsState.stop)
 
     utteranceQueued = 0
+    utteranceFinishTimer?.invalidate()
+    utteranceFinishIgnored = false
+
     synthesizer?.delegate = nil
     synthesizer = nil
   }
@@ -119,6 +125,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     if synth.isSpeaking && !synth.isPaused {
       synth.pauseSpeaking(at: AVSpeechBoundary.immediate)
+      ttsStateEventHandler.sendEvent(TtsState.pause)
     }
   }
   
@@ -129,6 +136,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     if synth.isSpeaking && synth.isPaused {
       synth.continueSpeaking()
+      ttsStateEventHandler.sendEvent(TtsState.start)
     }
   }
   
@@ -220,7 +228,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
       "languageInstalled": true,
       "name": voice.name,
       "gender": gender,
-      "networkRequired": false,
+      "networkRequired": false
     ]
   }
   
@@ -235,12 +243,20 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   }
   
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
+    if utteranceFinishIgnored {
+      utteranceFinishIgnored = false
+      return
+    }
+
     // Delay slightly stop because this event is fired too soon!
     let defaultShift = 0.2
 
     // Delay stop because of postUtteranceDelay not taken into account
-    DispatchQueue.main.asyncAfter(deadline: .now() + defaultShift + utterance.postUtteranceDelay) {
-      self.utteranceQueued -= 1
+    utteranceFinishTimer = Timer.scheduledTimer(withTimeInterval: defaultShift + utterance.postUtteranceDelay, repeats: false) { [weak self] timer in
+      guard let self = self else { return }
+      if self.utteranceQueued == 0 { return }
+
+      self.utteranceQueued = max(0, self.utteranceQueued - 1)
 
       if self.utteranceQueued == 0 {
         self.ttsStateEventHandler.sendEvent(TtsState.stop)
