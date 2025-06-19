@@ -1,6 +1,6 @@
 name: stts
 description: "Speech-to-Text and Text-to-Speech plugin. Offline first."
-version: 1.1.2
+version: 1.2.0
 homepage: https://github.com/llfbandit/stts
 
 topics:
@@ -18,7 +18,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  stts_platform_interface: ^1.1.0
+  stts_platform_interface: ^1.2.0
   stts_web: ^1.1.0
 
 dev_dependencies:

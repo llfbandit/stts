@@ -1,3 +1,6 @@
+## 1.2.0
+* feat(STT): Add offline option.
+
 ## 1.1.0
 * feat(TTS): Add queue flush option.
 

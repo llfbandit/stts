@@ -20,6 +20,20 @@ class SttRecognitionOptions {
   /// API levels: Android: 33, iOS: 16, macOS: 13
   final bool punctuation;
 
+  /// Offline speech recognition engine usage preference.
+  ///
+  /// If `false`, either network or offline recognition engine may be used.
+  /// - Offline engine is likely to be used if the language model is installed.
+  /// - Usage can be more restrictive because of online service thresholds.
+  /// - From my experience, speech is often truncated (at the end or for short words on Android).
+  ///
+  /// This value may have no effect on Android depending of:
+  /// - underlying recognizer implementation
+  /// - API level < 23
+  ///
+  /// Supported on Android, iOS, macOS.
+  final bool offline;
+
   /// Android specific options.
   final SttRecognitionAndroidOptions android;
 
@@ -32,6 +46,7 @@ class SttRecognitionOptions {
   const SttRecognitionOptions({
     this.contextualStrings = const [],
     this.punctuation = false,
+    this.offline = true,
     this.android = const SttRecognitionAndroidOptions(),
     this.ios = const SttRecognitionIosOptions(),
     this.macos = const SttRecognitionMacosOptions(),
@@ -41,6 +56,7 @@ class SttRecognitionOptions {
     return <String, dynamic>{
       'contextualStrings': contextualStrings,
       'punctuation': punctuation,
+      'offline': offline,
       'android': android.toMap(),
       'ios': android.toMap(),
       'macos': android.toMap(),

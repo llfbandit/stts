@@ -13,16 +13,19 @@ class SttRecognitionOptions {
   let punctuation: Bool
   let contextualStrings: [String]
   let taskHint: SFSpeechRecognitionTaskHint?
+  let offline: Bool
   
-  init(punctuation: Bool, contextualStrings: [String], taskHint: SFSpeechRecognitionTaskHint? = nil) {
+  init(punctuation: Bool, contextualStrings: [String], taskHint: SFSpeechRecognitionTaskHint?, offline: Bool) {
     self.punctuation = punctuation
     self.contextualStrings = contextualStrings
     self.taskHint = taskHint
+    self.offline = offline
   }
   
   static func fromMap(_ map: [String: Any]) -> SttRecognitionOptions {
     let punctuation = map["punctuation"] as? Bool ?? false
     let contextualStrings = map["contextualStrings"] as? [String] ?? []
+    let offline = map["offline"] as? Bool ?? true
     
     var taskHint: SFSpeechRecognitionTaskHint?
     if let iosOptions = map["ios"] as? [String : Any] {
@@ -39,7 +42,8 @@ class SttRecognitionOptions {
     return SttRecognitionOptions(
       punctuation: punctuation,
       contextualStrings: contextualStrings,
-      taskHint: taskHint
+      taskHint: taskHint,
+      offline: offline
     )
   }
 }
@@ -51,6 +55,7 @@ class Stt {
   private var recognizer: SFSpeechRecognizer?
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
   private var recognitionTask: SFSpeechRecognitionTask?
+  private var stopTimer: Timer?
   
   private var stateEventHandler: SttStateStreamHandler
   private var resultEventHandler: SttResultStreamHandler
@@ -109,6 +114,8 @@ class Stt {
   }
   
   func stop() {
+    stopTimer?.invalidate()
+
     let wasInitialized = recognitionRequest != nil
     
     recognitionRequest?.endAudio()
@@ -166,7 +173,7 @@ class Stt {
     recognitionRequest.shouldReportPartialResults = true
 
     if #available(iOS 13, *) {
-      if recognizer.supportsOnDeviceRecognition {
+      if options.offline && recognizer.supportsOnDeviceRecognition {
         recognitionRequest.requiresOnDeviceRecognition = true
       }
     }
@@ -198,6 +205,13 @@ class Stt {
         }
         if isFinal {
           self.stop()
+        } else if #available(iOS 13, *) {
+          if !recognitionRequest.requiresOnDeviceRecognition {
+            self.stopTimer?.invalidate()
+            self.stopTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { [weak self] timer in
+              self?.stop()
+            }
+          }
         }
       } else if self.recognitionTask != nil, let error = error { // check task to not fire error event on stop/cancel
         self.stateEventHandler.sendErrorEvent(error)

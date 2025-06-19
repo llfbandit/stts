@@ -36,6 +36,8 @@ final sub = stt.onStateChanged.listen(
   onError: (err) {/* Retrieve listener errors from here */ },
 );
 
+await tts.hasPermission(); // Request for audio recording and STT service usage.
+
 // Get intermediate and final results.
 stt.onResultChanged.listen((result) { /* The current result String */ });
 
@@ -60,8 +62,8 @@ final sub = tts.onStateChanged.listen(
 );
 
 // Add utterance. Texts are queued.
-await tts.start('Hello');
-await tts.start('world!'); // ...optionnaly, abort with tts.stop();
+tts.start('Hello');
+tts.start('world!'); // ...optionnaly, abort with tts.stop();
 
 // As always, don't forget to release resources.
 sub.cancel();

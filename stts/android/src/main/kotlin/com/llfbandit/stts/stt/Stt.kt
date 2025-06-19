@@ -184,7 +184,7 @@ class Stt(
       putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLocale.toLanguageTag())
 
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
+        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, options.offline)
       }
 
       if (options.punctuation && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

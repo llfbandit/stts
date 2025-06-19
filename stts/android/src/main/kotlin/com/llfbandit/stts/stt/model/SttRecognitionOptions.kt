@@ -5,7 +5,8 @@ import android.speech.RecognizerIntent
 class SttRecognitionOptions(
   val contextualStrings: ArrayList<String> = ArrayList(),
   val punctuation: Boolean = false,
-  val model: String
+  val model: String,
+  val offline: Boolean = true
 ) {
   companion object {
     fun fromMap(options: Map<String, Any>): SttRecognitionOptions {
@@ -24,10 +25,14 @@ class SttRecognitionOptions(
       val punctuation =
         if (options["punctuation"] != null) options["punctuation"] as Boolean else false
 
+      val offline =
+        if (options["offline"] != null) options["offline"] as Boolean else true
+
       return SttRecognitionOptions(
         contextualStrings,
         punctuation,
-        model
+        model,
+        offline
       )
     }
   }
