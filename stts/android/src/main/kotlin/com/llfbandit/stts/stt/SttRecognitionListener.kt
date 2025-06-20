@@ -19,18 +19,10 @@ class SttRecognitionListener(
 
   override fun onReadyForSpeech(params: Bundle?) = stateStreamHandler.sendEvent(SttState.Start)
 
-  override fun onEndOfSpeech() {
-    if (currentResult.isNotEmpty()) {
-      resultStreamHandler.sendEvent(currentResult, true)
-      currentResult = ""
-    }
-
-    onStop()
-  }
-
   override fun onResults(results: Bundle?) {
     doOnResults(results, true)
     currentResult = ""
+    onStop()
   }
 
   override fun onPartialResults(partialResults: Bundle?) = doOnResults(partialResults, false)
@@ -38,7 +30,7 @@ class SttRecognitionListener(
   private fun doOnResults(results: Bundle?, isFinal: Boolean) {
     val data = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
 
-    if (!data.isNullOrEmpty()) {
+    if (!data.isNullOrEmpty() && data[0].isNotEmpty()) {
       // The first element is the most likely candidate
       resultStreamHandler.sendEvent(data[0], isFinal)
 
@@ -73,6 +65,13 @@ class SttRecognitionListener(
       SpeechRecognizer.ERROR_NO_MATCH -> {
         // no_match is not processed as error, just trigger stop event
         // This error occurs when nothing has been detected, it may be a silence also.
+
+        // Send the last result as final in that case
+        if (currentResult.isNotEmpty()) {
+          resultStreamHandler.sendEvent(currentResult, true)
+          currentResult = ""
+        }
+
         onStop()
       }
       SpeechRecognizer.ERROR_CLIENT -> {
@@ -92,4 +91,5 @@ class SttRecognitionListener(
   override fun onRmsChanged(rmsdB: Float) {}
   override fun onBufferReceived(buffer: ByteArray?) {}
   override fun onEvent(eventType: Int, params: Bundle?) {}
+  override fun onEndOfSpeech() {}
 }

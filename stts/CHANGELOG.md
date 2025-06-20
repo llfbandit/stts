@@ -1,3 +1,6 @@
+## 1.2.4
+* fix(Android/STT): Offline/online behaviour consistency (and truncated detection).
+
 ## 1.2.3
 * fix(iOS/macOS/TTS): Event firing regression.
 

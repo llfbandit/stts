@@ -25,7 +25,6 @@ class SttRecognitionOptions {
   /// If `false`, either network or offline recognition engine may be used.
   /// - Offline engine is likely to be used if the language model is installed.
   /// - Usage can be more restrictive because of online service thresholds.
-  /// - From my experience, speech is often truncated (at the end or for short words on Android).
   ///
   /// This value may have no effect on Android depending of:
   /// - underlying recognizer implementation
