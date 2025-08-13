@@ -1,3 +1,7 @@
+## 1.2.5
+* fix(Android/STT): Improve compatibility with older APIs/devices and offline mode.
+* chore(Android): compileSdk 36 / kotlin 2.2.
+
 ## 1.2.4
 * fix(Android/STT): Offline/online behaviour consistency (and truncated detection).
 

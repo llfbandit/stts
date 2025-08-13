@@ -22,7 +22,7 @@ import java.util.Locale
 import java.util.concurrent.Executors
 
 class Stt(
-  private val context: Context,
+  val context: Context,
   private val stateStreamHandler: SttStateStreamHandler,
   private val resultStreamHandler: SttResultStreamHandler
 ) {
@@ -54,7 +54,16 @@ class Stt(
       return
     }
 
-    return SpeechLanguageHelper().getSupportedLocales(context, resultCallback)
+    return SpeechLanguageHelper().getSupportedLocales(context) {
+      if (it == null) {
+        val results = ArrayList<String>()
+        results.add(Locale.getDefault().toLanguageTag())
+
+        resultCallback.onResult(results)
+      } else {
+        resultCallback.onResult(it)
+      }
+    }
   }
 
   fun start(options: SttRecognitionOptions) {
@@ -181,10 +190,14 @@ class Stt(
     val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
       putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, options.model)
       putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-      putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLocale.toLanguageTag())
 
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, options.offline)
+      if (currentLocale != Locale.getDefault()) {
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE, currentLocale.toLanguageTag())
+      }
+
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && options.offline) {
+        // Only set this when required to deal with older APIs (error 12, 13)
+        putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
       }
 
       if (options.punctuation && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

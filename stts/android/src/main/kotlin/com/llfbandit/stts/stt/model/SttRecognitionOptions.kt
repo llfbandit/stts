@@ -9,7 +9,7 @@ class SttRecognitionOptions(
   val offline: Boolean = true
 ) {
   companion object {
-    fun fromMap(options: Map<String, Any>): SttRecognitionOptions {
+    fun fromMap(options: Map<String, Any>, hasLanguages: Boolean): SttRecognitionOptions {
       var contextualStrings = ArrayList<String>()
       val value = options["contextualStrings"]
       if (value is ArrayList<*> && value.all { it is String }) {
@@ -25,8 +25,11 @@ class SttRecognitionOptions(
       val punctuation =
         if (options["punctuation"] != null) options["punctuation"] as Boolean else false
 
-      val offline =
-        if (options["offline"] != null) options["offline"] as Boolean else true
+      // Override
+      val offline = if (hasLanguages && options["offline"] != null)
+        options["offline"] as Boolean
+      else
+        hasLanguages
 
       return SttRecognitionOptions(
         contextualStrings,

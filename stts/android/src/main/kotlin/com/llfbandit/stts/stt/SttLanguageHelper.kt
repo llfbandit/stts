@@ -12,7 +12,7 @@ import android.speech.SpeechRecognizer.createOnDeviceSpeechRecognizer
 import java.util.concurrent.Executors
 
 fun interface SupportedLanguagesResultCallback {
-  fun onResult(locales: List<String>)
+  fun onResult(locales: List<String>?)
 }
 
 class SpeechLanguageHelper {
@@ -39,19 +39,19 @@ class SpeechLanguageHelper {
           }
         })
     } else {
-      val intent = Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS)
+      var intent = RecognizerIntent.getVoiceDetailsIntent(context)
+
+      if (null == intent) {
+        intent = Intent(RecognizerIntent.ACTION_GET_LANGUAGE_DETAILS)
+      }
 
       context.sendOrderedBroadcast(intent, null, object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-          if (resultCode == Activity.RESULT_OK) {
-            val results = getResultExtras(true)
+          val results = getResultExtras(true)
 
-            resultCallback.onResult(
-              results.getStringArrayList(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES) ?: ArrayList()
-            )
-          } else {
-            resultCallback.onResult(ArrayList())
-          }
+          resultCallback.onResult(
+            results.getStringArrayList(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES)
+          )
         }
       }, null, Activity.RESULT_OK, null, null)
     }
