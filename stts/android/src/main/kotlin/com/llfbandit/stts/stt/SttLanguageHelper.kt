@@ -8,7 +8,7 @@ import android.os.Build
 import android.speech.RecognitionSupport
 import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
-import android.speech.SpeechRecognizer.createOnDeviceSpeechRecognizer
+import android.speech.SpeechRecognizer
 import java.util.concurrent.Executors
 
 fun interface SupportedLanguagesResultCallback {
@@ -17,8 +17,8 @@ fun interface SupportedLanguagesResultCallback {
 
 class SpeechLanguageHelper {
   fun getSupportedLocales(context: Context, resultCallback: SupportedLanguagesResultCallback) {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-      val recognizer = createOnDeviceSpeechRecognizer(context)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && SpeechRecognizer.isOnDeviceRecognitionAvailable(context)) {
+      val recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
       val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
 
       recognizer.checkRecognitionSupport(

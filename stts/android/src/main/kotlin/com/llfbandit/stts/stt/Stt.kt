@@ -200,15 +200,17 @@ class Stt(
         putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
       }
 
-      if (options.punctuation && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        putExtra(
-          RecognizerIntent.EXTRA_ENABLE_FORMATTING,
-          RecognizerIntent.FORMATTING_OPTIMIZE_QUALITY
-        )
-      }
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        if (options.punctuation) {
+          putExtra(
+            RecognizerIntent.EXTRA_ENABLE_FORMATTING,
+            RecognizerIntent.FORMATTING_OPTIMIZE_QUALITY
+          )
+        }
 
-      if (options.contextualStrings.isNotEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        putExtra(RecognizerIntent.EXTRA_BIASING_STRINGS, options.contextualStrings)
+        if (options.contextualStrings.isNotEmpty()) {
+          putExtra(RecognizerIntent.EXTRA_BIASING_STRINGS, options.contextualStrings)
+        }
       }
     }
 
