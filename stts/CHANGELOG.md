@@ -1,4 +1,4 @@
-## next
+## 1.2.6
 * fix(Android): Check if on device recognition is available before creating.
 
 ## 1.2.5
