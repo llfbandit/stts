@@ -74,11 +74,11 @@ tts.dispose();
 
 You can either use one or both engines in your app. So permissions are only required for dedicated engine.
 
-* [Android](https://github.com/llfbandit/stts/blob/master/doc/README_android.md)
-* [iOS](https://github.com/llfbandit/stts/blob/master/doc/README_ios.md)
-* [macOS](https://github.com/llfbandit/stts/blob/master/doc/README_macos.md)
-* [Web](https://github.com/llfbandit/stts/blob/master/doc/README_web.md)
-* [Windows](https://github.com/llfbandit/stts/blob/master/doc/README_windows.md)
+* [Android](https://github.com/llfbandit/stts/blob/main/doc/README_android.md)
+* [iOS](https://github.com/llfbandit/stts/blob/main/doc/README_ios.md)
+* [macOS](https://github.com/llfbandit/stts/blob/main/doc/README_macos.md)
+* [Web](https://github.com/llfbandit/stts/blob/main/doc/README_web.md)
+* [Windows](https://github.com/llfbandit/stts/blob/main/doc/README_windows.md)
 
 ## Misc. infos / warnings
 
