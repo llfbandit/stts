@@ -1,7 +1,35 @@
 name: stts_workspace
 
+publish_to: none
+
 environment:
-  sdk: ^3.3.0
+  sdk: ^3.12.0
 
 dev_dependencies:
-  melos: ^6.0.0
+  melos: ^7.8.0
+
+workspace:
+  - stts
+  - stts/example
+  - stts_platform_interface
+  - stts_web
+
+melos:
+  # Don't generate intellij files
+  ide:
+    intellij: false
+
+  command:
+    # When a dependency in a package is listed it will be replaced with the following versions.
+    bootstrap:
+      environment:
+        sdk: ^3.12.0
+        flutter: ">=3.44.0"
+      dev_dependencies:
+        # Linter rules (https://pub.dev/packages/flutter_lints)
+        flutter_lints: ^6.0.0
+
+  clean:
+    hooks:
+      # Runs "flutter clean" in all Flutter packages (`--flutter`) with concurrency
+      post: melos exec --flutter -c 1 -- "flutter clean"
