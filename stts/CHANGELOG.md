@@ -1,3 +1,9 @@
+## 1.3.0
+* chore: Updates minimum supported SDK version to Flutter 3.44/Dart 3.12.
+* Android:
+    * chore: Move to AGP 9.x.
+    * chore: Move to Kotlin Gradle DSL.
+
 ## 1.2.6
 * fix(Android): Check if on device recognition is available before creating.
 
