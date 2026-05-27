@@ -3,6 +3,10 @@
 * Android:
     * chore: Move to AGP 9.x.
     * chore: Move to Kotlin Gradle DSL.
+* iOS:
+    * chore: Completes Swift Package Manager integration.
+* macOS:
+    * chore: Completes Swift Package Manager integration.
 
 ## 1.2.6
 * fix(Android): Check if on device recognition is available before creating.
