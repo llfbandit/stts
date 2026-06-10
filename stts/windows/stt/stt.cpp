@@ -82,6 +82,7 @@ namespace stts {
         language = (std::string)CW2A(locale);
 
         cpAttribKey->Release();
+        pToken->Release();
 
         return language;
     }
@@ -111,10 +112,10 @@ namespace stts {
             if ((std::string)CW2A(locale) == language)
             {
                 cpAttribKey->Release();
-                pToken->Release();
                 cpEnum->Release();
 
-                ThrowIfFailed(m_pRecognizer->SetRecognizer(pToken));                
+                ThrowIfFailed(m_pRecognizer->SetRecognizer(pToken));
+                pToken->Release();
                 return;
             }
 
