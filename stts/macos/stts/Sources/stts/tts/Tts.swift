@@ -72,9 +72,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
       utteranceQueued = 0
       utteranceFinishTimer?.invalidate()
 
-      DispatchQueue.global(qos: .background).async {
-        self.synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
-      }
+      synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
     }
 
     let utterance = AVSpeechUtterance(string: text)
@@ -97,11 +95,9 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
 
     utteranceQueued += 1
 
-    DispatchQueue.global(qos: .background).async {
-      self.synthesizer?.speak(utterance)
-      self.synthesizer?.continueSpeaking()
-      self.ttsStateEventHandler.sendEvent(TtsState.start)
-    }
+    synthesizer?.speak(utterance)
+    synthesizer?.continueSpeaking()
+    ttsStateEventHandler.sendEvent(TtsState.start)
   }
   
   func stop() {
@@ -116,28 +112,24 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   }
   
   func pause() {
-    DispatchQueue.global(qos: .background).async {
-      guard let synth = self.synthesizer else {
-        return
-      }
+    guard let synth = synthesizer else {
+      return
+    }
 
-      if synth.isSpeaking && !synth.isPaused {
-        synth.pauseSpeaking(at: AVSpeechBoundary.immediate)
-        self.ttsStateEventHandler.sendEvent(TtsState.pause)
-      }
+    if synth.isSpeaking && !synth.isPaused {
+      synth.pauseSpeaking(at: AVSpeechBoundary.immediate)
+      ttsStateEventHandler.sendEvent(TtsState.pause)
     }
   }
-  
+
   func resume() {
-    DispatchQueue.global(qos: .background).async {
-      guard let synth = self.synthesizer else {
-        return
-      }
-      
-      if synth.isSpeaking && synth.isPaused {
-        synth.continueSpeaking()
-        self.ttsStateEventHandler.sendEvent(TtsState.start)
-      }
+    guard let synth = synthesizer else {
+      return
+    }
+
+    if synth.isSpeaking && synth.isPaused {
+      synth.continueSpeaking()
+      ttsStateEventHandler.sendEvent(TtsState.start)
     }
   }
   
