@@ -38,16 +38,17 @@ class TtsMethodHandler(private val tts: Tts) : MethodCallHandler {
       }
 
       "start" -> {
-        val text = call.argument<String>("text")!!
-        val queueMode = call.argument<String>("mode")!!
-        val options = TtsOptions(
-          TtsQueueMode.valueOf(queueMode.replaceFirstChar { it.uppercaseChar() }),
-          call.argument<Int>("preSilence"),
-          call.argument<Int>("postSilence")
-        )
-
-        tts.start(text, options)
-        result.success(null)
+        callOrError<String>(call, result, "text") { text ->
+          callOrError<String>(call, result, "mode") { queueMode ->
+            val options = TtsOptions(
+              TtsQueueMode.valueOf(queueMode.replaceFirstChar { it.uppercaseChar() }),
+              call.argument<Int>("preSilence"),
+              call.argument<Int>("postSilence")
+            )
+            tts.start(text, options)
+            result.success(null)
+          }
+        }
       }
 
       "pause" -> {
