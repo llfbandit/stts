@@ -1,3 +1,6 @@
+## 1.1.1
+* fix(STT): Don't emit SttState.stop twice.
+
 ## 1.1.0
 * feat(TTS): Add queue flush option.
 

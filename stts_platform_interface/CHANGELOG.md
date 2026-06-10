@@ -1,3 +1,6 @@
+## 1.2.1
+* fix(STT): Correctly propagate iOS and macOS specific recognition options.
+
 ## 1.2.0
 * feat(STT): Add offline option.
 

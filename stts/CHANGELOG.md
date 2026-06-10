@@ -1,3 +1,11 @@
+## 1.3.1
+* fix(Android): replace force-unwrap of TTS start arguments with callOrError.
+* fix(android): Prevent missed TtsState.Stop.
+* fix(Android): Potential NPE.
+* fix(Windows): Pointer release issues.
+* fix(darwin): transcription.segments[0] without empty check crashes on empty segments.
+* fix(darwin): Don't Apple's main-thread requirement for AVSpeechSynthesizer.
+
 ## 1.3.0
 * chore: Updates minimum supported SDK version to Flutter 3.44/Dart 3.12.
 * Android:
