@@ -57,8 +57,8 @@ class SttRecognitionOptions {
       'punctuation': punctuation,
       'offline': offline,
       'android': android.toMap(),
-      'ios': android.toMap(),
-      'macos': android.toMap(),
+      'ios': ios.toMap(),
+      'macos': macos.toMap(),
     };
   }
 }
@@ -73,9 +73,7 @@ class SttRecognitionAndroidOptions {
   });
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'model': model.name,
-    };
+    return <String, dynamic>{'model': model.name};
   }
 }
 
@@ -96,14 +94,10 @@ class SttRecognitionIosOptions {
   /// Informs the recognizer which speech task to prefer.
   final SttRecognitionDarwinTaskHint? taskHint;
 
-  const SttRecognitionIosOptions({
-    this.taskHint,
-  });
+  const SttRecognitionIosOptions({this.taskHint});
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'taskHint': taskHint,
-    };
+    return <String, dynamic>{'taskHint': taskHint};
   }
 }
 
@@ -112,14 +106,10 @@ class SttRecognitionMacosOptions {
   /// Informs the recognizer which speech task to prefer.
   final SttRecognitionDarwinTaskHint? taskHint;
 
-  const SttRecognitionMacosOptions({
-    this.taskHint,
-  });
+  const SttRecognitionMacosOptions({this.taskHint});
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{
-      'taskHint': taskHint,
-    };
+    return <String, dynamic>{'taskHint': taskHint};
   }
 }
 
