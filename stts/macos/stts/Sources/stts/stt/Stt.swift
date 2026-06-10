@@ -169,8 +169,8 @@ class Stt {
 
         // isFinal seems to be always false, stops with confidence instead.
         // Partial results are always with confidence == 0.
-        let confidence = transcription.segments[0].confidence
-        let isFinal = result.isFinal || confidence > 0.0 ? true : false
+        let confidence = transcription.segments.first?.confidence ?? 0.0
+        let isFinal = result.isFinal || confidence > 0.0
         
         if !transcription.formattedString.isEmpty {
           self.resultEventHandler.sendEvent(transcription.formattedString, isFinal)
