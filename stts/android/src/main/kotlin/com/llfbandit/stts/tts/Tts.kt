@@ -230,8 +230,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     }
 
     override fun onDone(utteranceId: String) {
-      val utterance = utterances.find { info -> info.id == utteranceId }
-      utterances.remove(utterance)
+      utterances.removeAll { info -> info.id == utteranceId }
 
       if (utterances.isEmpty()) {
         ttsStateStreamHandler.sendEvent(TtsState.Stop)
