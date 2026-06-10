@@ -152,10 +152,12 @@ class Stt extends SttPlatformInterface {
   }
 
   void _stop() {
-    if (!_isSupported()) return;
+    final instance = _recognizerInstance;
+    if (instance == null) return;
 
-    _recognizerInstance?.stop();
     _recognizerInstance = null;
+    instance.onend = null;
+    instance.stop();
 
     _updateState(SttState.stop);
   }
