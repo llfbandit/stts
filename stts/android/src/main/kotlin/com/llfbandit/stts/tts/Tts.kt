@@ -129,7 +129,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
   fun getLanguage(): String {
     if (!isSupported()) return ""
 
-    return tts!!.voice.locale.toLanguageTag()
+    return tts!!.voice?.locale?.toLanguageTag() ?: ""
   }
 
   fun getLanguages(): List<String> {
