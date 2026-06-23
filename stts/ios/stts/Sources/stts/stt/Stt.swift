@@ -189,8 +189,9 @@ class Stt {
     }
     
     // setup task
-    let recognitionTask = recognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
-      guard let self = self else { return }
+    var recognitionTask: SFSpeechRecognitionTask?
+    recognitionTask = recognizer.recognitionTask(with: recognitionRequest) { [weak self] result, error in
+      guard let self = self, self.recognitionTask === recognitionTask else { return }
 
       if let result = result {
         let transcription = result.bestTranscription
@@ -213,12 +214,12 @@ class Stt {
             }
           }
         }
-      } else if self.recognitionTask != nil, let error = error { // check task to not fire error event on stop/cancel
+      } else if let error = error {
         self.stateEventHandler.sendErrorEvent(error)
         self.stop()
       }
     }
-    
+
     self.recognitionRequest = recognitionRequest
     self.recognitionTask = recognitionTask
     self.recognizer = recognizer
@@ -231,7 +232,11 @@ class Stt {
     
     let inputNode = audioEngine.inputNode
     let format = inputNode.inputFormat(forBus: 0)
-    
+
+    // Remove any stale tap before installing — avoids crash when start() is called
+    // while a previous tap removal is still in-flight on the recognition callback queue.
+    inputNode.removeTap(onBus: 0)
+
     // feed our recognition task with request
     inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] (buffer, when) in
       guard let self = self else { return }
