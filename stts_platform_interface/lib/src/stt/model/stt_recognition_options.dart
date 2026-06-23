@@ -97,7 +97,7 @@ class SttRecognitionIosOptions {
   const SttRecognitionIosOptions({this.taskHint});
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{'taskHint': taskHint};
+    return <String, dynamic>{'taskHint': taskHint?.name};
   }
 }
 
@@ -109,7 +109,7 @@ class SttRecognitionMacosOptions {
   const SttRecognitionMacosOptions({this.taskHint});
 
   Map<String, dynamic> toMap() {
-    return <String, dynamic>{'taskHint': taskHint};
+    return <String, dynamic>{'taskHint': taskHint?.name};
   }
 }
 
