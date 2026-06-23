@@ -1,3 +1,6 @@
+## 1.3.2
+* fix(darwin): prevent tap reinstall crash on rapid start/stop.
+
 ## 1.3.1
 * fix(Android): replace force-unwrap of TTS start arguments with callOrError.
 * fix(android): Prevent missed TtsState.Stop.

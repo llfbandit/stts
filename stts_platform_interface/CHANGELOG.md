@@ -1,3 +1,6 @@
+## 1.2.2
+* fix(STT): SttRecognitionDarwinTaskHint toMap() conversion
+
 ## 1.2.1
 * fix(STT): Correctly propagate iOS and macOS specific recognition options.
 
