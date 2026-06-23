@@ -123,6 +123,7 @@ class Stt {
     
     audioEngine.stop()
     audioEngine.inputNode.removeTap(onBus: 0)
+    audioEngine.reset() // Adds extra stability
     
     recognitionTask?.cancel()
     recognitionTask = nil
@@ -230,6 +231,7 @@ class Stt {
     }
     
     let inputNode = audioEngine.inputNode
+    inputNode.removeTap(onBus: 0)
     let format = inputNode.inputFormat(forBus: 0)
     
     // feed our recognition task with request
