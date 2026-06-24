@@ -180,7 +180,10 @@ class Stt {
           self.stop()
         } else if !recognitionRequest.requiresOnDeviceRecognition {
           self.stopTimer?.invalidate()
-          self.stopTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { [weak self] timer in
+          self.stopTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false) { [weak self] timer in
+            if !transcription.formattedString.isEmpty {
+              self?.resultEventHandler.sendEvent(transcription.formattedString, true)
+            }
             self?.stop()
           }
         }

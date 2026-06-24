@@ -115,8 +115,6 @@ class Stt {
   
   func stop() {
     stopTimer?.invalidate()
-
-    let wasInitialized = recognitionRequest != nil
     
     recognitionRequest?.endAudio()
     recognitionRequest = nil
@@ -129,13 +127,7 @@ class Stt {
     
     recognizer = nil
     
-    // Delay stop event to fix "No speech detected" - 1110 error.
-    // In case of restart just after stop.
-    if wasInitialized {
-      DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(100), execute: {
-        self.stateEventHandler.sendEvent(SttState.stop)
-      })
-    }
+    stateEventHandler.sendEvent(SttState.stop)
   }
   
   func manageAudioSession(_ manage: Bool) {
@@ -209,7 +201,10 @@ class Stt {
         } else if #available(iOS 13, *) {
           if !recognitionRequest.requiresOnDeviceRecognition {
             self.stopTimer?.invalidate()
-            self.stopTimer = Timer.scheduledTimer(withTimeInterval: 3, repeats: false) { [weak self] timer in
+            self.stopTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false) { [weak self] timer in
+              if !transcription.formattedString.isEmpty {
+                self?.resultEventHandler.sendEvent(transcription.formattedString, true)
+              }
               self?.stop()
             }
           }
