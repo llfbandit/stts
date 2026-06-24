@@ -18,9 +18,11 @@ class TtsStateStreamHandler: NSObject, FlutterStreamHandler {
   }
   
   func sendEvent(_ state: TtsState) {
-    if let eventSink = eventSink, currentState != state {
-      currentState = state
+    guard currentState != state else { return }
       
+    currentState = state
+    
+    if let eventSink = eventSink {
       DispatchQueue.main.async {
         eventSink(state.rawValue)
       }
