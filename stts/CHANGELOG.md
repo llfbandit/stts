@@ -1,3 +1,10 @@
+## 1.3.3
+* fix(ios): allowBluetooth deprecation.
+* fix(darwin): Properly propagate SttError errors.
+* fix(darwin): Dissociate state check vs. listener check.
+* fix(darwin): TO now provides final result.
+* fix(darwin): Remove now useless tiny timer on iOS when stopping with fix applied in 1.3.2.
+
 ## 1.3.2
 * fix(darwin): prevent tap reinstall crash on rapid start/stop.
 
