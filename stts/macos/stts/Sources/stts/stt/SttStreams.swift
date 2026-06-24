@@ -18,9 +18,11 @@ class SttStateStreamHandler: NSObject, FlutterStreamHandler {
   }
   
   func sendEvent(_ state: SttState) {
-    if let eventSink = eventSink, currentState != state {
-      currentState = state
+    guard currentState != state else { return }
       
+    currentState = state
+    
+    if let eventSink = eventSink {
       DispatchQueue.main.async {
         eventSink(state.rawValue)
       }
