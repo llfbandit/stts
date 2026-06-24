@@ -227,7 +227,11 @@ class Stt {
 
     // setup audio
     if manageAudioSession {
+      #if compiler(<6.2)
       try setAudioSessionCategory(.playAndRecord, options: [.duckOthers, .defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP])
+      #else
+      try setAudioSessionCategory(.playAndRecord, options: [.duckOthers, .defaultToSpeaker, .allowBluetoothHFP, .allowBluetoothA2DP])
+      #endif
       try setAudioSessionActive(true)
     }
     

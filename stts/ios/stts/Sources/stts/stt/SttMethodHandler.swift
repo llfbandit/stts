@@ -130,7 +130,11 @@ class SttMethodHandler {
       case "mixWithOthers": result.insert(.mixWithOthers)
       case "duckOthers": result.insert(.duckOthers)
       case "interruptSpokenAudioAndMixWithOthers": result.insert(.interruptSpokenAudioAndMixWithOthers)
+      #if compiler(<6.2)
       case "allowBluetooth": result.insert(.allowBluetooth)
+      #else
+      case "allowBluetooth": result.insert(.allowBluetoothHFP)
+      #endif
       case "allowBluetoothA2DP": result.insert(.allowBluetoothA2DP)
       case "allowAirPlay": result.insert(.allowAirPlay)
       case "defaultToSpeaker": result.insert(.defaultToSpeaker)
