@@ -1,7 +1,13 @@
 import Speech
 
-enum SttError: Error {
+enum SttError: LocalizedError {
   case error(_ message: String)
+
+  var errorDescription: String? {
+    switch self {
+    case .error(let message): return message
+    }
+  }
 }
 
 enum SttState: Int {
