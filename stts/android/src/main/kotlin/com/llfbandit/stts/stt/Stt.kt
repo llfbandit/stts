@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.media.AudioManager
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.speech.ModelDownloadListener
 import android.speech.RecognitionSupport
 import android.speech.RecognitionSupportCallback
@@ -14,10 +16,6 @@ import com.llfbandit.stts.stt.model.SttRecognitionOptions
 import com.llfbandit.stts.stt.model.SttState
 import com.llfbandit.stts.stt.stream.SttResultStreamHandler
 import com.llfbandit.stts.stt.stream.SttStateStreamHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.util.Locale
 import java.util.concurrent.Executors
 
@@ -31,6 +29,11 @@ class Stt(
   private var speechRecognizer: SpeechRecognizer? = null
   private var muteSystemSounds: Boolean = false
   private var originalRingerMode: Int = AudioManager.RINGER_MODE_NORMAL
+  // Ringer mode has been switched to vibrate by us and must be restored.
+  private var ringerMuted = false
+  private var pendingRingerRestore: Runnable? = null
+  private val uiThreadHandler = Handler(Looper.getMainLooper())
+  private val audioManager by lazy { context.getSystemService(Context.AUDIO_SERVICE) as AudioManager }
 
   fun isSupported(): Boolean {
     val result = SpeechRecognizer.isRecognitionAvailable(context)
@@ -69,6 +72,13 @@ class Stt(
   fun start(options: SttRecognitionOptions) {
     if (!isSupported()) return
 
+    // Previous session is still restoring ringer mode. Complete its stop now.
+    if (cancelRingerRestore()) {
+      // Keep the ringer muted for this session, unless muting has been disabled meanwhile.
+      if (!muteSystemSounds) unmuteRinger()
+      stateStreamHandler.sendEvent(SttState.Stop)
+    }
+
     if (speechRecognizer == null) {
       createSpeechRecognizer()
       saveRingerMode()
@@ -81,7 +91,8 @@ class Stt(
     speechRecognizer?.startListening(recognizerIntent)
   }
 
-  fun stop() {
+  // restoreNow: restores ringer mode without delay, when no quick restart can follow.
+  fun stop(restoreNow: Boolean = false) {
     if (!isSupported()) return
 
     speechRecognizer?.setRecognitionListener(null)
@@ -89,7 +100,7 @@ class Stt(
     speechRecognizer?.destroy()
     speechRecognizer = null
 
-    restoreRingerMode(onRestored = { stateStreamHandler.sendEvent(SttState.Stop) })
+    restoreRingerMode(restoreNow, onRestored = { stateStreamHandler.sendEvent(SttState.Stop) })
   }
 
   fun downloadModel(language: String, onEnd: (errCode: Int?) -> Unit) {
@@ -168,7 +179,8 @@ class Stt(
   }
 
   fun dispose() {
-    stop()
+    // The plugin may be detached right after.
+    stop(restoreNow = true)
 
     muteSystemSounds = false
   }
@@ -218,28 +230,52 @@ class Stt(
   }
 
   private fun saveRingerMode() {
-    val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+    // Current mode is still muted by us. Keep the saved one.
+    if (ringerMuted) return
+
     originalRingerMode = audioManager.ringerMode
   }
 
   private fun setRingerModeVibrate() {
     if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL) {
-      val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
       audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
+      ringerMuted = true
     }
   }
 
-  private fun restoreRingerMode(onRestored: () -> Unit) {
-    if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL) {
-      val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+  private fun restoreRingerMode(now: Boolean, onRestored: () -> Unit) {
+    if (!ringerMuted) {
+      onRestored()
+      return
+    }
 
-      CoroutineScope(Dispatchers.Default).launch {
-        delay(400)
-        audioManager.ringerMode = originalRingerMode
-        onRestored()
-      }
-    } else {
+    cancelRingerRestore()
+
+    if (now) {
+      unmuteRinger()
+      onRestored()
+      return
+    }
+
+    val restore = Runnable {
+      pendingRingerRestore = null
+      unmuteRinger()
       onRestored()
     }
+    pendingRingerRestore = restore
+    uiThreadHandler.postDelayed(restore, 400)
+  }
+
+  private fun unmuteRinger() {
+    audioManager.ringerMode = originalRingerMode
+    ringerMuted = false
+  }
+
+  private fun cancelRingerRestore(): Boolean {
+    val restore = pendingRingerRestore ?: return false
+
+    uiThreadHandler.removeCallbacks(restore)
+    pendingRingerRestore = null
+    return true
   }
 }
