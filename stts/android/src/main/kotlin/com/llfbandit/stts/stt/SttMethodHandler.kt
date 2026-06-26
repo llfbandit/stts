@@ -1,7 +1,5 @@
 package com.llfbandit.stts.stt
 
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import com.llfbandit.stts.stt.model.SttRecognitionOptions
 import com.llfbandit.stts.stt.permission.SttPermissionManager
@@ -99,9 +97,7 @@ class SttMethodHandler(
           stt.downloadModel(
             language,
             onEnd = {
-              Handler(Looper.getMainLooper()).post {
-                methodChannel.invokeMethod("android.onDownloadModelEnd", mapOf("language" to language, "error" to it))
-              }
+              methodChannel.invokeMethod("android.onDownloadModelEnd", mapOf("language" to language, "error" to it))
             },
           )
         }

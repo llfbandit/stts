@@ -17,7 +17,6 @@ import com.llfbandit.stts.stt.model.SttState
 import com.llfbandit.stts.stt.stream.SttResultStreamHandler
 import com.llfbandit.stts.stt.stream.SttStateStreamHandler
 import java.util.Locale
-import java.util.concurrent.Executors
 
 class Stt(
   val context: Context,
@@ -103,6 +102,7 @@ class Stt(
     restoreRingerMode(restoreNow, onRestored = { stateStreamHandler.sendEvent(SttState.Stop) })
   }
 
+  // onEnd is called on the main thread.
   fun downloadModel(language: String, onEnd: (errCode: Int?) -> Unit) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
       Log.d(
@@ -124,7 +124,7 @@ class Stt(
 
     // Check if language is already installed before triggering UI.
     recognizer.checkRecognitionSupport(
-      intent, Executors.newSingleThreadExecutor(), object :
+      intent, context.mainExecutor, object :
         RecognitionSupportCallback {
         override fun onSupportResult(recognitionSupport: RecognitionSupport) {
           if (recognitionSupport.installedOnDeviceLanguages.contains(language)) {
@@ -137,7 +137,7 @@ class Stt(
 
           recognizer.triggerModelDownload(
             intent,
-            Executors.newSingleThreadExecutor(),
+            context.mainExecutor,
             object : ModelDownloadListener {
               override fun onProgress(progress: Int) {}
               override fun onScheduled() {
