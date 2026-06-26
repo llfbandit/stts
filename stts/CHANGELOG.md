@@ -1,3 +1,9 @@
+## 1.3.4
+* fix(android): Guard TTS init against concurrent dispose.
+* fix(android): Run speech recognizer callbacks on main thread.
+* fix(android): Mutate TTS utterance data on main thread only.
+* fix(android): Restore ringer mode on quick stop/start cycle.
+
 ## 1.3.3
 * fix(ios): allowBluetooth deprecation.
 * fix(darwin): Properly propagate SttError errors.

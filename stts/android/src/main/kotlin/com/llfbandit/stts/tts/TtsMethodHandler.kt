@@ -8,25 +8,17 @@ import io.flutter.plugin.common.MethodChannel.Result
 
 class TtsMethodHandler(private val tts: Tts) : MethodCallHandler {
   private var isInitialized = false
-  private val pendingCalls = ArrayList<Runnable>()
 
   override fun onMethodCall(call: MethodCall, result: Result) {
-    // TextToSpeech is fully initialized from a listener.
-    // Let's stack all calls during this period.
-    // This avoids messy code in Tts class to deal with this and also ease dispose/creation multiple times.
-    // This code is safe because there's a semaphore on dart side to ensure only one call is made at a time.
-    if (!isInitialized && call.method != "dispose") {
-      pendingCalls.add(Runnable { onSafeCall(call, result) })
+    if (isInitialized || call.method == "dispose") {
+      onSafeCall(call, result)
+      return
+    }
 
-      tts.create {
-        isInitialized = true
-
-        for (pendingCall in pendingCalls) {
-          pendingCall.run()
-        }
-        pendingCalls.clear()
-      }
-    } else {
+    // TextToSpeech is fully initialized from a listener. Answer the call once done.
+    // Dart side runs calls one at a time, no other call is received meanwhile.
+    tts.create {
+      isInitialized = true
       onSafeCall(call, result)
     }
   }

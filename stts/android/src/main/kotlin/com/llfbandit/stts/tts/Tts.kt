@@ -31,10 +31,16 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
   private var utteranceLastPosition = 0
   private var utterancePaused = false
   private val uiThreadHandler = Handler(Looper.getMainLooper())
+  // Identifies the current engine. Ignores init of an engine disposed meanwhile (plugin detached).
+  private var engineGeneration = 0
 
   fun create(onResult: () -> Unit) {
     if (tts == null) {
-      tts = TextToSpeech(context) { status -> onInit(status, onResult) }
+      val generation = ++engineGeneration
+      // The engine may call onInit before the constructor returns.
+      tts = TextToSpeech(context) { status -> onInit(generation, status, onResult) }.apply {
+        setOnUtteranceProgressListener(utteranceProgressListener)
+      }
     }
   }
 
@@ -186,19 +192,21 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
 
     tts?.shutdown()
     tts = null
+    engineGeneration++
 
+    isSupported = false
     volume = 1.0f
   }
 
-  private fun onInit(status: Int, onResult: () -> Unit = {}) {
+  private fun onInit(generation: Int, status: Int, onResult: () -> Unit) {
+    // This engine has been disposed while initializing (plugin detached).
+    if (generation != engineGeneration) return
+
     isSupported = status == TextToSpeech.SUCCESS
 
     if (!isSupported) {
       Log.e(LOG_TAG, "TTS Initialisation failed")
       ttsStateStreamHandler.sendErrorEvent(TtsError(-1, "initialisation"))
-    } else {
-      // (re-)create config in case of dispose.
-      tts!!.setOnUtteranceProgressListener(utteranceProgressListener)
     }
 
     onResult()
