@@ -8,7 +8,7 @@ class Tts extends TtsPlatformInterface {
   final _semaphore = Semaphore();
 
   @override
-  Future<bool> isSupported() => _tts.isSupported();
+  Future<bool> isSupported() => _safeCall(_tts.isSupported);
 
   @override
   Future<void> start(
@@ -70,6 +70,7 @@ class Tts extends TtsPlatformInterface {
   @override
   Stream<TtsState> get onStateChanged => _tts.onStateChanged;
 
+  // Runs platform calls one at a time. Native implementations rely on it.
   Future<T> _safeCall<T>(Future<T> Function() fn) async {
     await _semaphore.acquire();
     try {
