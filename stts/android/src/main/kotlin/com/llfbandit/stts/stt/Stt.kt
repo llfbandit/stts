@@ -57,9 +57,13 @@ class Stt(
     }
 
     SpeechLanguageHelper().getSupportedLocales(context) {
-      // Fall back to device language when languages could not be retrieved.
-      resultCallback.onResult(it.ifEmpty { listOf(Locale.getDefault().toLanguageTag()) })
+      resultCallback.onResult(withDefaultLanguage(it))
     }
+  }
+
+  // Falls back to device language when languages could not be retrieved.
+  fun withDefaultLanguage(languages: List<String>): List<String> {
+    return languages.ifEmpty { listOf(Locale.getDefault().toLanguageTag()) }
   }
 
   fun start(options: SttRecognitionOptions) {

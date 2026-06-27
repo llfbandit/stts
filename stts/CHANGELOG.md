@@ -1,4 +1,5 @@
 ## 1.3.4
+* fix(android): Retrieve STT languages only once during initialization.
 * fix: Queue all calls, including isSupported and platform specific ones.
 * fix(android): Guard TTS init against concurrent dispose.
 * fix(android): Run speech recognizer callbacks on main thread.

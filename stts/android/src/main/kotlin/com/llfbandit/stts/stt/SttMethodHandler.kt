@@ -16,43 +16,31 @@ class SttMethodHandler(
   private val logTag = "Stt"
 
   private var isInitialized = false
-  private val pendingCalls = ArrayList<Runnable>()
   private var hasLanguages = false
 
   override fun onMethodCall(call: MethodCall, result: Result) {
-    // SpeechToText may fail with offline mode.
-    // Retrieve languages to check if it's safe to use and stack all calls during this period.
-    if (!isInitialized && call.method != "dispose") {
-      pendingCalls.add(Runnable { onSafeCall(call, result) })
-
-      if (stt.isSupported()) {
-        SpeechLanguageHelper().getSupportedLocales(stt.context) {
-          hasLanguages = it.isNotEmpty()
-
-          if (!hasLanguages) {
-            Log.d(logTag, "Speech recognition: Unable to retrieve languages. Offline mode disabled.")
-          }
-
-          onInitialized()
-        }
-      } else {
-        onInitialized()
-      }
-    } else {
+    if (isInitialized || call.method == "dispose" || !stt.isSupported()) {
       onSafeCall(call, result)
+      return
+    }
+
+    // SpeechToText may fail with offline mode.
+    // Retrieve languages first to check if it's safe to use.
+    // Dart side runs calls one at a time, no other call is received meanwhile.
+    SpeechLanguageHelper().getSupportedLocales(stt.context) {
+      hasLanguages = it.isNotEmpty()
+      isInitialized = true
+
+      if (!hasLanguages) {
+        Log.d(logTag, "Speech recognition: Unable to retrieve languages. Offline mode disabled.")
+      }
+
+      onSafeCall(call, result, it)
     }
   }
 
-  private fun onInitialized() {
-    isInitialized = true
-
-    for (pendingCall in pendingCalls) {
-      pendingCall.run()
-    }
-    pendingCalls.clear()
-  }
-
-  private fun onSafeCall(call: MethodCall, result: Result) {
+  // languages: already retrieved languages, if any.
+  private fun onSafeCall(call: MethodCall, result: Result, languages: List<String>? = null) {
     when (call.method) {
       "isSupported" -> {
         result.success(stt.isSupported())
@@ -75,7 +63,11 @@ class SttMethodHandler(
       }
 
       "getLanguages" -> {
-        stt.getLanguages(result::success)
+        if (languages != null) {
+          result.success(stt.withDefaultLanguage(languages))
+        } else {
+          stt.getLanguages(result::success)
+        }
       }
 
       "start" -> {
