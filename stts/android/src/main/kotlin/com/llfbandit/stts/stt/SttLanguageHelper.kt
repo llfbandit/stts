@@ -11,7 +11,7 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 
 fun interface SupportedLanguagesResultCallback {
-  fun onResult(locales: List<String>?)
+  fun onResult(locales: List<String>)
 }
 
 class SpeechLanguageHelper {
@@ -34,7 +34,7 @@ class SpeechLanguageHelper {
 
           override fun onError(error: Int) {
             recognizer.destroy()
-            resultCallback.onResult(ArrayList())
+            resultCallback.onResult(emptyList())
           }
         })
     } else {
@@ -49,7 +49,7 @@ class SpeechLanguageHelper {
           val results = getResultExtras(true)
 
           resultCallback.onResult(
-            results.getStringArrayList(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES)
+            results.getStringArrayList(RecognizerIntent.EXTRA_SUPPORTED_LANGUAGES) ?: emptyList()
           )
         }
       }, null, Activity.RESULT_OK, null, null)

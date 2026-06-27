@@ -27,7 +27,7 @@ class SttMethodHandler(
 
       if (stt.isSupported()) {
         SpeechLanguageHelper().getSupportedLocales(stt.context) {
-          hasLanguages = it != null
+          hasLanguages = it.isNotEmpty()
 
           if (!hasLanguages) {
             Log.d(logTag, "Speech recognition: Unable to retrieve languages. Offline mode disabled.")

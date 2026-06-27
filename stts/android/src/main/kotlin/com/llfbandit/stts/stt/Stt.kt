@@ -56,15 +56,9 @@ class Stt(
       return
     }
 
-    return SpeechLanguageHelper().getSupportedLocales(context) {
-      if (it == null) {
-        val results = ArrayList<String>()
-        results.add(Locale.getDefault().toLanguageTag())
-
-        resultCallback.onResult(results)
-      } else {
-        resultCallback.onResult(it)
-      }
+    SpeechLanguageHelper().getSupportedLocales(context) {
+      // Fall back to device language when languages could not be retrieved.
+      resultCallback.onResult(it.ifEmpty { listOf(Locale.getDefault().toLanguageTag()) })
     }
   }
 
