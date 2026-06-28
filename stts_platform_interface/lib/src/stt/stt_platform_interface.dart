@@ -77,6 +77,9 @@ abstract class SttAndroid {
   /// This might trigger user interaction to approve the download.
   ///
   /// Useful for offline usage. API 34+.
+  ///
+  /// [onDownloadModelEnd] is always called, after this call completes,
+  /// e.g. with an error when the download can't start.
   Future<void> downloadModel(String language);
 
   /// Callback for [downloadModel] method when download is finished.

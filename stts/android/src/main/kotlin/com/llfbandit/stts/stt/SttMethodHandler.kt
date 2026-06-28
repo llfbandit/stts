@@ -85,7 +85,8 @@ class SttMethodHandler(
 
       "android.downloadModel" -> {
         val language = call.argument<String>("language")
-        if (language != null) {
+        // An early error is returned, the dart side reports it once the call returned.
+        val errCode = language?.let {
           stt.downloadModel(
             language,
             onEnd = {
@@ -93,7 +94,7 @@ class SttMethodHandler(
             },
           )
         }
-        result.success(null)
+        result.success(errCode)
       }
 
       "android.muteSystemSounds" -> {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
@@ -102,10 +104,16 @@ class _SttAndroidImpl implements SttAndroid {
   void Function(String language, int? errCode)? _onDownloadModelEnd;
 
   @override
-  Future<void> downloadModel(String language) {
-    return _methodChannel.invokeMethod<void>('android.downloadModel', {
-      'language': language,
-    });
+  Future<void> downloadModel(String language) async {
+    final errCode = await _methodChannel.invokeMethod<int>(
+      'android.downloadModel',
+      {'language': language},
+    );
+
+    // The download couldn't start. Report its end once the caller resumed.
+    if (errCode != null) {
+      Timer.run(() => _onDownloadModelEnd?.call(language, errCode));
+    }
   }
 
   @override

@@ -100,20 +100,21 @@ class Stt(
     restoreRingerMode(restoreNow, onRestored = { stateStreamHandler.sendEvent(SttState.Stop) })
   }
 
-  // onEnd is called on the main thread.
-  fun downloadModel(language: String, onEnd: (errCode: Int?) -> Unit) {
+  // Returns an error code when the download can't start, onEnd isn't called then.
+  // Otherwise, onEnd is called on the main thread.
+  fun downloadModel(language: String, onEnd: (errCode: Int?) -> Unit): Int? {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
       Log.d(
         logTag,
         "Device API too low: ${Build.VERSION.SDK_INT} vs. ${Build.VERSION_CODES.UPSIDE_DOWN_CAKE}."
       )
-      return
+      return SpeechRecognizer.ERROR_CANNOT_CHECK_SUPPORT
     }
 
     val result = SpeechRecognizer.isOnDeviceRecognitionAvailable(context)
     if (!result) {
       Log.d(logTag, "On device speech recognition is not supported.")
-      return
+      return SpeechRecognizer.ERROR_CANNOT_CHECK_SUPPORT
     }
 
     val recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
@@ -170,6 +171,8 @@ class Stt(
         }
       }
     )
+
+    return null
   }
 
   fun muteSystemSounds(mute: Boolean) {

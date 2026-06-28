@@ -1,4 +1,5 @@
 ## 1.3.4
+* fix(android): Report download model end when on device recognition is unavailable.
 * fix(android): Retrieve STT languages only once during initialization.
 * fix: Queue all calls, including isSupported and platform specific ones.
 * fix(android): Guard TTS init against concurrent dispose.

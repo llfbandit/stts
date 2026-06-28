@@ -1,3 +1,6 @@
+## 1.2.3
+* fix(STT/Android): Call onDownloadModelEnd when download model can't start.
+
 ## 1.2.2
 * fix(STT): SttRecognitionDarwinTaskHint toMap() conversion
 
