@@ -8,6 +8,7 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
 import android.util.Log
+import com.llfbandit.stts.normalizeLanguageTag
 import com.llfbandit.stts.tts.model.TtsError
 import com.llfbandit.stts.tts.model.TtsOptions
 import com.llfbandit.stts.tts.model.TtsQueueMode
@@ -127,8 +128,9 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
   fun setLanguage(lang: String) {
     if (!isSupported()) return
 
+    val languageTag = normalizeLanguageTag(lang)
     val locale = tts!!.availableLanguages.firstOrNull {
-      it.toLanguageTag() == lang
+      it.toLanguageTag() == languageTag
     }
     if (locale != null) {
       tts!!.language = locale
@@ -166,8 +168,9 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
   fun getVoicesByLanguage(language: String): List<Map<String, Any>> {
     if (!isSupported()) return emptyList()
 
+    val languageTag = normalizeLanguageTag(language)
     return tts!!.voices.filter {
-      it.locale.toLanguageTag() == language
+      it.locale.toLanguageTag() == languageTag
     }.map { mapVoice(it) }
   }
 

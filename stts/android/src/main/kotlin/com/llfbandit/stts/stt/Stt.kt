@@ -12,6 +12,8 @@ import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
+import com.llfbandit.stts.normalizeLanguageTag
+import com.llfbandit.stts.parseLanguageTag
 import com.llfbandit.stts.stt.model.SttRecognitionOptions
 import com.llfbandit.stts.stt.model.SttState
 import com.llfbandit.stts.stt.stream.SttResultStreamHandler
@@ -47,7 +49,7 @@ class Stt(
   fun getLanguage(): String = currentLocale.toLanguageTag()
 
   fun setLanguage(language: String) {
-    currentLocale = Locale.forLanguageTag(language)
+    currentLocale = parseLanguageTag(language)
   }
 
   fun getLanguages(resultCallback: SupportedLanguagesResultCallback) {
@@ -120,19 +122,20 @@ class Stt(
     val recognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(context)
 
     val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+    val languageTag = normalizeLanguageTag(language)
 
     // Check if language is already installed before triggering UI.
     recognizer.checkRecognitionSupport(
       intent, context.mainExecutor, object :
         RecognitionSupportCallback {
         override fun onSupportResult(recognitionSupport: RecognitionSupport) {
-          if (recognitionSupport.installedOnDeviceLanguages.contains(language)) {
+          if (recognitionSupport.installedOnDeviceLanguages.any { normalizeLanguageTag(it) == languageTag }) {
             onEnd(null)
             recognizer.destroy()
             return
           }
 
-          intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, language)
+          intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
 
           recognizer.triggerModelDownload(
             intent,
