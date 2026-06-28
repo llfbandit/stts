@@ -110,6 +110,8 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
         info.id,
         info.text.substring(utteranceLastPosition.coerceIn(0, info.text.length - 1))
       )
+      // Next ranges are relative to the trimmed text.
+      utteranceLastPosition = 0
     }
 
     utterances.forEach { speak(it) }
@@ -252,6 +254,10 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
 
     override fun onDone(utteranceId: String) {
       uiThreadHandler.post {
+        // Position belongs to the current utterance only.
+        if (utterances.firstOrNull()?.id == utteranceId) {
+          utteranceLastPosition = 0
+        }
         utterances.removeAll { info -> info.id == utteranceId }
 
         if (utterances.isEmpty()) {
@@ -290,7 +296,12 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     // Keep track of current utterance and its progress
     // Called only on API 26+, otherwise resume will replay from index 0
     override fun onRangeStart(utteranceId: String, startAt: Int, endAt: Int, frame: Int) {
-      uiThreadHandler.post { utteranceLastPosition = startAt }
+      uiThreadHandler.post {
+        // Ignore ranges from an utterance already flushed or done.
+        if (utterances.firstOrNull()?.id == utteranceId) {
+          utteranceLastPosition = startAt
+        }
+      }
 
       super.onRangeStart(utteranceId, startAt, endAt, frame)
     }
