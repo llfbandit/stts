@@ -92,8 +92,7 @@ class Stt(
 
   // restoreNow: restores ringer mode without delay, when no quick restart can follow.
   fun stop(restoreNow: Boolean = false) {
-    if (!isSupported()) return
-
+    // No support check. Recognition may have become unavailable during the session.
     speechRecognizer?.setRecognitionListener(null)
     speechRecognizer?.cancel()
     speechRecognizer?.destroy()
