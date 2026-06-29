@@ -1,4 +1,5 @@
 ## 1.3.4
+* fix(android): Ignore TTS resume when not paused.
 * fix(android): Stop STT and restore ringer mode when recognition becomes unavailable.
 * fix(android): Track TTS resume position per utterance.
 * fix(android): Normalize language tags (e.g. en_US, en-us).

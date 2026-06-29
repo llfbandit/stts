@@ -99,6 +99,8 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
 
   fun resume() {
     if (!isSupported()) return
+    // Otherwise queued utterances would be spoken twice.
+    if (!utterancePaused) return
 
     utterancePaused = false
     if (utterances.isEmpty()) return
