@@ -6,6 +6,7 @@ import android.media.AudioManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.Vibrator
 import android.speech.ModelDownloadListener
 import android.speech.RecognitionSupport
 import android.speech.RecognitionSupportCallback
@@ -240,9 +241,26 @@ class Stt(
   }
 
   private fun setRingerModeVibrate() {
-    if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL) {
-      audioManager.ringerMode = AudioManager.RINGER_MODE_VIBRATE
-      ringerMuted = true
+    // Without vibrator, vibrate mode turns to silent (Do Not Disturb), which we're not allowed to leave.
+    if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL && hasVibrator()) {
+      ringerMuted = setRingerMode(AudioManager.RINGER_MODE_VIBRATE)
+    }
+  }
+
+  @Suppress("DEPRECATION")
+  private fun hasVibrator(): Boolean {
+    val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator?
+    return vibrator?.hasVibrator() == true
+  }
+
+  // Returns false when not allowed, e.g. to change Do Not Disturb state.
+  private fun setRingerMode(mode: Int): Boolean {
+    return try {
+      audioManager.ringerMode = mode
+      true
+    } catch (e: SecurityException) {
+      Log.e(logTag, "Unable to set ringer mode: ${e.message}")
+      false
     }
   }
 
@@ -270,7 +288,7 @@ class Stt(
   }
 
   private fun unmuteRinger() {
-    audioManager.ringerMode = originalRingerMode
+    setRingerMode(originalRingerMode)
     ringerMuted = false
   }
 
