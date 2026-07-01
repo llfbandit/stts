@@ -12,6 +12,7 @@
 * fix(android): Mutate TTS utterance data on main thread only.
 * fix(android): Restore ringer mode on quick stop/start cycle.
 * fix(Android): Disable offline mode when no language is retrieved.
+* fix(windows): Initialize TTS option values.
 
 ## 1.3.3
 * fix(ios): allowBluetooth deprecation.

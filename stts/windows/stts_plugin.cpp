@@ -335,7 +335,7 @@ namespace stts {
 		else if (method.compare("setPitch") == 0) {
 			const auto args = method_call.arguments();
 			const auto* mapArgs = std::get_if<flutter::EncodableMap>(args);
-			double pitch;
+			double pitch = 1.0;
 			GetValueFromEncodableMap(mapArgs, "pitch", pitch);
 
 			mTts->SetPitch(pitch);
@@ -344,7 +344,7 @@ namespace stts {
 		else if (method.compare("setRate") == 0) {
 			const auto args = method_call.arguments();
 			const auto* mapArgs = std::get_if<flutter::EncodableMap>(args);
-			double rate;
+			double rate = 1.0;
 			GetValueFromEncodableMap(mapArgs, "rate", rate);
 
 			try
@@ -359,7 +359,7 @@ namespace stts {
 		else if (method.compare("setVolume") == 0) {
 			const auto args = method_call.arguments();
 			const auto* mapArgs = std::get_if<flutter::EncodableMap>(args);
-			double volume;
+			double volume = 1.0;
 			GetValueFromEncodableMap(mapArgs, "volume", volume);
 
 			try
@@ -396,11 +396,12 @@ namespace stts {
 
 	std::unique_ptr<TtsOptions> SttsPlugin::GetTtsOptions(const EncodableMap* args)
 	{
-		std::string mode;
+		// Dart omits the keys it has no value for. Keep the defaults in that case.
+		std::string mode = "add";
 		GetValueFromEncodableMap(args, "mode", mode);
-		int preSilenceMs;
+		int preSilenceMs = 0;
 		GetValueFromEncodableMap(args, "preSilence", preSilenceMs);
-		int postSilenceMs;
+		int postSilenceMs = 0;
 		GetValueFromEncodableMap(args, "postSilence", postSilenceMs);
 
 		auto options = std::make_unique<TtsOptions>(

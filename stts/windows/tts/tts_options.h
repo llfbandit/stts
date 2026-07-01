@@ -7,8 +7,8 @@ namespace stts
 	struct TtsOptions
 	{
 		std::string mode = "add";
-		int preSilenceMs = NULL;
-		int postSilenceMs = NULL;
+		int preSilenceMs = 0;
+		int postSilenceMs = 0;
 
 		TtsOptions(
 			const std::string& mode,

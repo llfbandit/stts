@@ -46,7 +46,7 @@ namespace stts {
     }
 
     inline std::string GetSilenceTag(int silenceMs) {
-        if (silenceMs != NULL)
+        if (silenceMs > 0)
         {
             return "<silence msec=\"" + std::to_string(silenceMs) + "\"/>";
         }
