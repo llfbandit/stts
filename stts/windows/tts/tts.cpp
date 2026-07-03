@@ -45,6 +45,25 @@ namespace stts {
         return "<pitch absmiddle=\"" + std::to_string(pitch) + "\"/>";
     }
 
+    // We speak with SPF_IS_XML. Escape the text so SAPI says it as-is.
+    inline std::string EscapeXml(const std::string& text) {
+        std::string escaped;
+        escaped.reserve(text.size());
+
+        for (char c : text)
+        {
+            switch (c)
+            {
+            case '&': escaped += "&amp;"; break;
+            case '<': escaped += "&lt;"; break;
+            case '>': escaped += "&gt;"; break;
+            default: escaped += c; break;
+            }
+        }
+
+        return escaped;
+    }
+
     inline std::string GetSilenceTag(int silenceMs) {
         if (silenceMs > 0)
         {
@@ -69,7 +88,7 @@ namespace stts {
             +
             GetSilenceTag(options->preSilenceMs)
             +
-            text
+            EscapeXml(text)
             +
             GetSilenceTag(options->postSilenceMs);
 

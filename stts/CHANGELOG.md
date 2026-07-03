@@ -13,6 +13,7 @@
 * fix(android): Restore ringer mode on quick stop/start cycle.
 * fix(Android): Disable offline mode when no language is retrieved.
 * fix(windows): Initialize TTS option values.
+* fix(windows): Escape TTS text as XML.
 
 ## 1.3.3
 * fix(ios): allowBluetooth deprecation.
