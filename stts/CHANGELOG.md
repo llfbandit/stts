@@ -14,6 +14,7 @@
 * fix(Android): Disable offline mode when no language is retrieved.
 * fix(windows): Initialize TTS option values.
 * fix(windows): Escape TTS text as XML.
+* fix(windows): Release audio input token on STT start.
 
 ## 1.3.3
 * fix(ios): allowBluetooth deprecation.

@@ -167,10 +167,14 @@ namespace stts {
         auto interests = SPFEI(SPEI_RECOGNITION) | SPFEI(SPEI_HYPOTHESIS);
         ThrowIfFailed(m_pRecoContext->SetInterest(interests, interests));
 
-        ISpObjectToken* token;
+        ISpObjectToken* token = NULL;
         ThrowIfFailed(SpGetDefaultTokenFromCategoryId(SPCAT_AUDIOIN, &token));
 
-        ThrowIfFailed(m_pRecognizer->SetInput(token, TRUE));
+        // SetInput keeps its own reference. Drop ours, even on failure.
+        HRESULT hr = m_pRecognizer->SetInput(token, TRUE);
+        token->Release();
+        ThrowIfFailed(hr);
+
         ThrowIfFailed(m_pRecoGrammar->LoadDictation(NULL, SPLO_STATIC));
         ThrowIfFailed(m_pRecoGrammar->SetDictationState(SPRS_ACTIVE));
 
