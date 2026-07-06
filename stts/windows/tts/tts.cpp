@@ -174,12 +174,9 @@ namespace stts {
         auto voices = GetVoicesByLanguage(language);
 
         // Set first matching voice
-        for (TtsVoice voice : voices)
+        if (!voices.empty())
         {
-            if (voice.language == language)
-            {
-                SetVoice(voice.id);
-            }
+            SetVoice(voices[0].id);
         }
     }
 
