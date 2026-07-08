@@ -16,6 +16,7 @@
 * fix(windows): Escape TTS text as XML.
 * fix(windows): Release audio input token on STT start.
 * fix(windows): Select first matching voice on language change.
+* fix(windows): Keep STT recognition context alive until dispose.
 
 ## 1.3.3
 * fix(ios): allowBluetooth deprecation.

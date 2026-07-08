@@ -31,6 +31,7 @@ namespace stts {
 		ISpRecognizer* m_pRecognizer;
 		ISpRecoContext* m_pRecoContext;
 		ISpRecoGrammar* m_pRecoGrammar;
+		bool m_isListening = false;
 
 		EventStreamHandler* m_stateEventHandler;
 		EventStreamHandler* m_resultEventHandler;

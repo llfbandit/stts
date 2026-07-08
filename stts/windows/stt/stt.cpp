@@ -21,6 +21,9 @@ namespace stts {
     {
         auto pThis = (Stt*)wParam;
 
+        // A notification may still reach us after dispose.
+        if (pThis->m_pRecoContext == NULL) return;
+
         CSpEvent event;
         if (event.GetFrom(pThis->m_pRecoContext) == S_OK)
         {
@@ -162,11 +165,6 @@ namespace stts {
     void Stt::Start() {
         ThrowIfFailed(CreateRecognizer());
 
-        ThrowIfFailed(m_pRecoContext->SetNotifyCallbackFunction((SPNOTIFYCALLBACK*)Stt::RecoEventCallback, (WPARAM)this, 0));
-
-        auto interests = SPFEI(SPEI_RECOGNITION) | SPFEI(SPEI_HYPOTHESIS);
-        ThrowIfFailed(m_pRecoContext->SetInterest(interests, interests));
-
         ISpObjectToken* token = NULL;
         ThrowIfFailed(SpGetDefaultTokenFromCategoryId(SPCAT_AUDIOIN, &token));
 
@@ -178,21 +176,36 @@ namespace stts {
         ThrowIfFailed(m_pRecoGrammar->LoadDictation(NULL, SPLO_STATIC));
         ThrowIfFailed(m_pRecoGrammar->SetDictationState(SPRS_ACTIVE));
 
+        m_isListening = true;
         m_stateEventHandler->Success(flutter::EncodableValue(1));
     }
 
+    // Called from the recognition callback. Only stop dictation here,
+    // releasing the context would tear down the notification source we run on.
     void Stt::Stop()
     {
+        if (!m_isListening) return;
+
+        m_isListening = false;
+
         if (m_pRecoGrammar)
         {
             m_pRecoGrammar->SetDictationState(SPRS_INACTIVE);
             m_pRecoGrammar->UnloadDictation();
         }
 
-        if (m_pRecognizer)
+        m_stateEventHandler->Success(flutter::EncodableValue(0));
+    }
+
+    void Stt::Dispose()
+    {
+        Stop();
+
+        // Release children before parents.
+        if (m_pRecoGrammar)
         {
-            m_pRecognizer->Release();
-            m_pRecognizer = NULL;
+            m_pRecoGrammar->Release();
+            m_pRecoGrammar = NULL;
         }
 
         if (m_pRecoContext)
@@ -201,18 +214,11 @@ namespace stts {
             m_pRecoContext = NULL;
         }
 
-        if (m_pRecoGrammar)
+        if (m_pRecognizer)
         {
-            m_pRecoGrammar->Release();
-            m_pRecoGrammar = NULL;
-
-            m_stateEventHandler->Success(flutter::EncodableValue(0));
+            m_pRecognizer->Release();
+            m_pRecognizer = NULL;
         }
-    }
-
-    void Stt::Dispose()
-    {
-        Stop();
     }
 
     HRESULT Stt::CreateRecognizer()
@@ -227,6 +233,14 @@ namespace stts {
         if (m_pRecoContext == NULL)
         {
             hr = m_pRecognizer->CreateRecoContext(&m_pRecoContext);
+            if (FAILED(hr)) return hr;
+
+            // SAPI accepts one registration per context. Do it once, here.
+            hr = m_pRecoContext->SetNotifyCallbackFunction((SPNOTIFYCALLBACK*)Stt::RecoEventCallback, (WPARAM)this, 0);
+            if (FAILED(hr)) return hr;
+
+            auto interests = SPFEI(SPEI_RECOGNITION) | SPFEI(SPEI_HYPOTHESIS);
+            hr = m_pRecoContext->SetInterest(interests, interests);
             if (FAILED(hr)) return hr;
         }
         if (m_pRecoGrammar == NULL)
