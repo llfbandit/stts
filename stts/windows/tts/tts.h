@@ -63,7 +63,8 @@ namespace stts {
 		EventStreamHandler* m_stateEventHandler;
 
 		HRESULT CreateVoice();
-		void ThrowIfFailed(HRESULT code);		
+		bool GetVoiceFromToken(ISpObjectToken* pToken, TtsVoice& voice);
+		void ThrowIfFailed(HRESULT code);
 	};
 
 }

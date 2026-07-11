@@ -64,6 +64,14 @@ namespace stts {
         return escaped;
     }
 
+    // Attributes hold the locale identifier (e.g. 0x40C as String...). Convert it to ISO code.
+    inline std::string LocaleFromLcid(LPCWSTR wValue) {
+        wchar_t locale[LOCALE_NAME_MAX_LENGTH] = {};
+        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+
+        return (std::string)CW2A(locale);
+    }
+
     inline std::string GetSilenceTag(int silenceMs) {
         if (silenceMs > 0)
         {
@@ -185,35 +193,13 @@ namespace stts {
     {
         std::vector<std::string> languages;
 
-        IEnumSpObjectTokens* cpEnum = NULL;
-        ThrowIfFailed(SpEnumTokens(SPCAT_VOICES, NULL, NULL, &cpEnum));
-
-        ISpObjectToken* pToken = NULL;
-        while (cpEnum->Next(1, &pToken, NULL) == S_OK)
+        for (const TtsVoice& voice : GetVoices())
         {
-            ISpDataKey* cpAttribKey;
-            ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
-
-            LPWSTR wValue;
-            ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
-
-            // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-            wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-            LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
-            CoTaskMemFree(wValue);
-
-            std::string language((std::string)CW2A(locale));
-
             // Don't duplicate results
-            if (std::find(languages.begin(), languages.end(), language) == languages.end()) {
-                languages.push_back(language);
+            if (std::find(languages.begin(), languages.end(), voice.language) == languages.end()) {
+                languages.push_back(voice.language);
             }
-
-            cpAttribKey->Release();
-            pToken->Release();
         }
-
-        cpEnum->Release();
 
         return languages;
     }
@@ -253,48 +239,65 @@ namespace stts {
         std::vector<TtsVoice> voices;
 
         IEnumSpObjectTokens* cpEnum = NULL;
-        ThrowIfFailed(SpEnumTokens(SPCAT_VOICES, NULL, NULL, &cpEnum));
+        // Report no voice when the platform has none to enumerate.
+        if (FAILED(SpEnumTokens(SPCAT_VOICES, NULL, NULL, &cpEnum))) return voices;
 
         ISpObjectToken* pToken = NULL;
 
         while (cpEnum->Next(1, &pToken, NULL) == S_OK)
-        {            
+        {
             TtsVoice voice;
-            LPWSTR wValue;
 
-            ThrowIfFailed(pToken->GetStringValue(L"CLSID", &wValue));
-            voice.id = (std::string)CW2A(wValue);
-            CoTaskMemFree(wValue);
+            if (GetVoiceFromToken(pToken, voice))
+            {
+                voices.push_back(voice);
+            }
 
-            ISpDataKey* cpAttribKey;
-            ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
             pToken->Release();
-
-            ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
-
-            // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-            wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-            LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
-            voice.language = (std::string)CW2A(locale);
-            CoTaskMemFree(wValue);
-
-            ThrowIfFailed(cpAttribKey->GetStringValue(L"Name", &wValue));
-            voice.name = (std::string)CW2A(wValue);
-            CoTaskMemFree(wValue);
-
-            ThrowIfFailed(cpAttribKey->GetStringValue(L"Gender", &wValue));
-            std::string gender((std::string)CW2A(wValue));
-            voice.gender = (gender == "Male") ? TtsVoiceGender::male : TtsVoiceGender::female;
-            CoTaskMemFree(wValue);
-
-            voices.push_back(voice);
-
-            cpAttribKey->Release();
         }
 
         cpEnum->Release();
 
         return voices;
+    }
+
+    // Reads a voice token. Rejects it when its registration is incomplete.
+    bool Tts::GetVoiceFromToken(ISpObjectToken* pToken, TtsVoice& voice)
+    {
+        LPWSTR wValue;
+
+        if (FAILED(pToken->GetStringValue(L"CLSID", &wValue))) return false;
+        voice.id = (std::string)CW2A(wValue);
+        CoTaskMemFree(wValue);
+
+        ISpDataKey* cpAttribKey;
+        if (FAILED(pToken->OpenKey(L"Attributes", &cpAttribKey))) return false;
+
+        auto hrLanguage = cpAttribKey->GetStringValue(L"Language", &wValue);
+        if (SUCCEEDED(hrLanguage))
+        {
+            voice.language = LocaleFromLcid(wValue);
+            CoTaskMemFree(wValue);
+        }
+
+        auto hrName = cpAttribKey->GetStringValue(L"Name", &wValue);
+        if (SUCCEEDED(hrName))
+        {
+            voice.name = (std::string)CW2A(wValue);
+            CoTaskMemFree(wValue);
+        }
+
+        // Gender is optional. Keep the default when the voice omits it.
+        if (SUCCEEDED(cpAttribKey->GetStringValue(L"Gender", &wValue)))
+        {
+            std::string gender((std::string)CW2A(wValue));
+            voice.gender = (gender == "Male") ? TtsVoiceGender::male : TtsVoiceGender::female;
+            CoTaskMemFree(wValue);
+        }
+
+        cpAttribKey->Release();
+
+        return SUCCEEDED(hrLanguage) && SUCCEEDED(hrName);
     }
 
     std::vector<TtsVoice> Tts::GetVoicesByLanguage(std::string language)

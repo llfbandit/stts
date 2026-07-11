@@ -57,6 +57,14 @@ namespace stts {
         }
     }
 
+    // Attributes hold the locale identifier (e.g. 0x40C as String...). Convert it to ISO code.
+    inline std::string LocaleFromLcid(LPCWSTR wValue) {
+        wchar_t locale[LOCALE_NAME_MAX_LENGTH] = {};
+        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+
+        return (std::string)CW2A(locale);
+    }
+
     bool Stt::IsSupported()
     {
         return CreateRecognizer() == S_OK;
@@ -135,25 +143,27 @@ namespace stts {
         std::vector<std::string> languages;
 
         IEnumSpObjectTokens* cpEnum = NULL;
-        ThrowIfFailed(SpEnumTokens(SPCAT_RECOGNIZERS, NULL, NULL, &cpEnum));
+        // Report no language when the platform has no recognizer to enumerate.
+        if (FAILED(SpEnumTokens(SPCAT_RECOGNIZERS, NULL, NULL, &cpEnum))) return languages;
 
         ISpObjectToken* pToken = NULL;
         while (cpEnum->Next(1, &pToken, NULL) == S_OK)
         {
             ISpDataKey* cpAttribKey;
-            ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
 
-            LPWSTR wValue;
-            ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
+            // Skip the recognizer when its registration is incomplete.
+            if (SUCCEEDED(pToken->OpenKey(L"Attributes", &cpAttribKey)))
+            {
+                LPWSTR wValue;
+                if (SUCCEEDED(cpAttribKey->GetStringValue(L"Language", &wValue)))
+                {
+                    languages.push_back(LocaleFromLcid(wValue));
+                    CoTaskMemFree(wValue);
+                }
 
-            // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-            wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-            LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
-            CoTaskMemFree(wValue);
+                cpAttribKey->Release();
+            }
 
-            languages.push_back((std::string)CW2A(locale));
-
-            cpAttribKey->Release();
             pToken->Release();
         }
 
