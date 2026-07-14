@@ -88,3 +88,11 @@ inline std::wstring Utf16FromUtf8(const std::string& utf8_string) {
 
 	return utf16_string;
 }
+
+// Attributes hold the locale identifier (e.g. 0x40C as String...). Convert it to ISO code.
+inline std::string LocaleFromLcid(LPCWSTR wValue) {
+	wchar_t locale[LOCALE_NAME_MAX_LENGTH] = {};
+	LCIDToLocaleName((LCID)std::wcstol(wValue, NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+
+	return Utf8FromUtf16(locale);
+}

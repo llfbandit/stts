@@ -57,14 +57,6 @@ namespace stts {
         }
     }
 
-    // Attributes hold the locale identifier (e.g. 0x40C as String...). Convert it to ISO code.
-    inline std::string LocaleFromLcid(LPCWSTR wValue) {
-        wchar_t locale[LOCALE_NAME_MAX_LENGTH] = {};
-        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
-
-        return (std::string)CW2A(locale);
-    }
-
     bool Stt::IsSupported()
     {
         return CreateRecognizer() == S_OK;
@@ -85,12 +77,8 @@ namespace stts {
         LPWSTR wValue;
         ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
 
-        // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-        wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+        language = LocaleFromLcid(wValue);
         CoTaskMemFree(wValue);
-
-        language = (std::string)CW2A(locale);
 
         cpAttribKey->Release();
         pToken->Release();
@@ -115,12 +103,10 @@ namespace stts {
             LPWSTR wValue;
             ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
 
-            // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-            wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-            LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+            auto tokenLanguage = LocaleFromLcid(wValue);
             CoTaskMemFree(wValue);
 
-            if ((std::string)CW2A(locale) == language)
+            if (tokenLanguage == language)
             {
                 cpAttribKey->Release();
                 cpEnum->Release();

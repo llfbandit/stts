@@ -64,14 +64,6 @@ namespace stts {
         return escaped;
     }
 
-    // Attributes hold the locale identifier (e.g. 0x40C as String...). Convert it to ISO code.
-    inline std::string LocaleFromLcid(LPCWSTR wValue) {
-        wchar_t locale[LOCALE_NAME_MAX_LENGTH] = {};
-        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
-
-        return (std::string)CW2A(locale);
-    }
-
     inline std::string GetSilenceTag(int silenceMs) {
         if (silenceMs > 0)
         {
@@ -162,12 +154,8 @@ namespace stts {
         LPWSTR wValue;
         ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
 
-        // We get value as locale identifier (e.g. 0x40C as String...). We need to convert it to ISO code.
-        wchar_t locale[LOCALE_NAME_MAX_LENGTH];
-        LCIDToLocaleName((LCID)std::strtol(CW2A(wValue), NULL, 16), locale, LOCALE_NAME_MAX_LENGTH, 0);
+        language = LocaleFromLcid(wValue);
         CoTaskMemFree(wValue);
-
-        language = (std::string)CW2A(locale);
 
         cpAttribKey->Release();
         pToken->Release();
@@ -217,7 +205,7 @@ namespace stts {
             LPWSTR wValue;
             ThrowIfFailed(pToken->GetStringValue(L"CLSID", &wValue));
 
-            if (voiceId == (std::string)CW2A(wValue))
+            if (voiceId == Utf8FromUtf16(wValue))
             {
                 m_pVoice->SetVoice(pToken);
 
@@ -267,7 +255,7 @@ namespace stts {
         LPWSTR wValue;
 
         if (FAILED(pToken->GetStringValue(L"CLSID", &wValue))) return false;
-        voice.id = (std::string)CW2A(wValue);
+        voice.id = Utf8FromUtf16(wValue);
         CoTaskMemFree(wValue);
 
         ISpDataKey* cpAttribKey;
@@ -283,14 +271,14 @@ namespace stts {
         auto hrName = cpAttribKey->GetStringValue(L"Name", &wValue);
         if (SUCCEEDED(hrName))
         {
-            voice.name = (std::string)CW2A(wValue);
+            voice.name = Utf8FromUtf16(wValue);
             CoTaskMemFree(wValue);
         }
 
         // Gender is optional. Keep the default when the voice omits it.
         if (SUCCEEDED(cpAttribKey->GetStringValue(L"Gender", &wValue)))
         {
-            std::string gender((std::string)CW2A(wValue));
+            std::string gender(Utf8FromUtf16(wValue));
             voice.gender = (gender == "Male") ? TtsVoiceGender::male : TtsVoiceGender::female;
             CoTaskMemFree(wValue);
         }
