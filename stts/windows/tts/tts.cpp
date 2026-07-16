@@ -141,24 +141,19 @@ namespace stts {
 
     std::string Tts::GetLanguage()
     {
-        std::string language = "";
-
         ThrowIfFailed(CreateVoice());
 
-        ISpObjectToken* pToken = NULL;
-        ThrowIfFailed(m_pVoice->GetVoice(&pToken));
-        
-        ISpDataKey* cpAttribKey;
-        ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
+        CComPtr<ISpObjectToken> cpToken;
+        ThrowIfFailed(m_pVoice->GetVoice(&cpToken));
+
+        CComPtr<ISpDataKey> cpAttribKey;
+        ThrowIfFailed(cpToken->OpenKey(L"Attributes", &cpAttribKey));
 
         LPWSTR wValue;
         ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
 
-        language = LocaleFromLcid(wValue);
+        auto language = LocaleFromLcid(wValue);
         CoTaskMemFree(wValue);
-
-        cpAttribKey->Release();
-        pToken->Release();
 
         return language;
     }
@@ -196,55 +191,49 @@ namespace stts {
     {
         ThrowIfFailed(CreateVoice());
 
-        IEnumSpObjectTokens* cpEnum = NULL;
+        CComPtr<IEnumSpObjectTokens> cpEnum;
         ThrowIfFailed(SpEnumTokens(SPCAT_VOICES, NULL, NULL, &cpEnum));
 
-        ISpObjectToken* pToken = NULL;
-        while (cpEnum->Next(1, &pToken, NULL) == S_OK)
+        while (true)
         {
+            CComPtr<ISpObjectToken> cpToken;
+            if (cpEnum->Next(1, &cpToken, NULL) != S_OK) break;
+
             LPWSTR wValue;
-            ThrowIfFailed(pToken->GetStringValue(L"CLSID", &wValue));
+            // Skip the voice when its registration is incomplete.
+            if (FAILED(cpToken->GetStringValue(L"CLSID", &wValue))) continue;
 
-            if (voiceId == Utf8FromUtf16(wValue))
+            auto tokenId = Utf8FromUtf16(wValue);
+            CoTaskMemFree(wValue);
+
+            if (voiceId == tokenId)
             {
-                m_pVoice->SetVoice(pToken);
-
-                CoTaskMemFree(wValue);
-                pToken->Release();
-                cpEnum->Release();
+                ThrowIfFailed(m_pVoice->SetVoice(cpToken));
                 return;
             }
-
-            CoTaskMemFree(wValue);
-            pToken->Release();
         }
-
-        cpEnum->Release();
     }
 
     std::vector<TtsVoice> Tts::GetVoices()
     {
         std::vector<TtsVoice> voices;
 
-        IEnumSpObjectTokens* cpEnum = NULL;
+        CComPtr<IEnumSpObjectTokens> cpEnum;
         // Report no voice when the platform has none to enumerate.
         if (FAILED(SpEnumTokens(SPCAT_VOICES, NULL, NULL, &cpEnum))) return voices;
 
-        ISpObjectToken* pToken = NULL;
-
-        while (cpEnum->Next(1, &pToken, NULL) == S_OK)
+        while (true)
         {
+            CComPtr<ISpObjectToken> cpToken;
+            if (cpEnum->Next(1, &cpToken, NULL) != S_OK) break;
+
             TtsVoice voice;
 
-            if (GetVoiceFromToken(pToken, voice))
+            if (GetVoiceFromToken(cpToken, voice))
             {
                 voices.push_back(voice);
             }
-
-            pToken->Release();
         }
-
-        cpEnum->Release();
 
         return voices;
     }
@@ -258,7 +247,7 @@ namespace stts {
         voice.id = Utf8FromUtf16(wValue);
         CoTaskMemFree(wValue);
 
-        ISpDataKey* cpAttribKey;
+        CComPtr<ISpDataKey> cpAttribKey;
         if (FAILED(pToken->OpenKey(L"Attributes", &cpAttribKey))) return false;
 
         auto hrLanguage = cpAttribKey->GetStringValue(L"Language", &wValue);
@@ -282,8 +271,6 @@ namespace stts {
             voice.gender = (gender == "Male") ? TtsVoiceGender::male : TtsVoiceGender::female;
             CoTaskMemFree(wValue);
         }
-
-        cpAttribKey->Release();
 
         return SUCCEEDED(hrLanguage) && SUCCEEDED(hrName);
     }

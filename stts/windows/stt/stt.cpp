@@ -64,24 +64,19 @@ namespace stts {
 
     std::string Stt::getLanguage()
     {
-        std::string language = "";
-
         ThrowIfFailed(CreateRecognizer());
 
-        ISpObjectToken* pToken = NULL;
-        ThrowIfFailed(m_pRecognizer->GetRecognizer(&pToken));
+        CComPtr<ISpObjectToken> cpToken;
+        ThrowIfFailed(m_pRecognizer->GetRecognizer(&cpToken));
 
-        ISpDataKey* cpAttribKey;
-        ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
+        CComPtr<ISpDataKey> cpAttribKey;
+        ThrowIfFailed(cpToken->OpenKey(L"Attributes", &cpAttribKey));
 
         LPWSTR wValue;
         ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
 
-        language = LocaleFromLcid(wValue);
+        auto language = LocaleFromLcid(wValue);
         CoTaskMemFree(wValue);
-
-        cpAttribKey->Release();
-        pToken->Release();
 
         return language;
     }
@@ -90,37 +85,30 @@ namespace stts {
     {
         ThrowIfFailed(CreateRecognizer());
 
-        IEnumSpObjectTokens* cpEnum = NULL;
+        CComPtr<IEnumSpObjectTokens> cpEnum;
         ThrowIfFailed(SpEnumTokens(SPCAT_RECOGNIZERS, NULL, NULL, &cpEnum));
 
-        ISpObjectToken* pToken = NULL;
-
-        while (cpEnum->Next(1, &pToken, NULL) == S_OK)
+        while (true)
         {
-            ISpDataKey* cpAttribKey;
-            ThrowIfFailed(pToken->OpenKey(L"Attributes", &cpAttribKey));
+            CComPtr<ISpObjectToken> cpToken;
+            if (cpEnum->Next(1, &cpToken, NULL) != S_OK) break;
+
+            // Skip the recognizer when its registration is incomplete.
+            CComPtr<ISpDataKey> cpAttribKey;
+            if (FAILED(cpToken->OpenKey(L"Attributes", &cpAttribKey))) continue;
 
             LPWSTR wValue;
-            ThrowIfFailed(cpAttribKey->GetStringValue(L"Language", &wValue));
+            if (FAILED(cpAttribKey->GetStringValue(L"Language", &wValue))) continue;
 
             auto tokenLanguage = LocaleFromLcid(wValue);
             CoTaskMemFree(wValue);
 
             if (tokenLanguage == language)
             {
-                cpAttribKey->Release();
-                cpEnum->Release();
-
-                ThrowIfFailed(m_pRecognizer->SetRecognizer(pToken));
-                pToken->Release();
+                ThrowIfFailed(m_pRecognizer->SetRecognizer(cpToken));
                 return;
             }
-
-            cpAttribKey->Release();
-            pToken->Release();
         }
-
-        cpEnum->Release();
     }
 
     // https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ee431801(v=vs.85)#62-category-recognizers
@@ -128,32 +116,25 @@ namespace stts {
     {
         std::vector<std::string> languages;
 
-        IEnumSpObjectTokens* cpEnum = NULL;
+        CComPtr<IEnumSpObjectTokens> cpEnum;
         // Report no language when the platform has no recognizer to enumerate.
         if (FAILED(SpEnumTokens(SPCAT_RECOGNIZERS, NULL, NULL, &cpEnum))) return languages;
 
-        ISpObjectToken* pToken = NULL;
-        while (cpEnum->Next(1, &pToken, NULL) == S_OK)
+        while (true)
         {
-            ISpDataKey* cpAttribKey;
+            CComPtr<ISpObjectToken> cpToken;
+            if (cpEnum->Next(1, &cpToken, NULL) != S_OK) break;
 
             // Skip the recognizer when its registration is incomplete.
-            if (SUCCEEDED(pToken->OpenKey(L"Attributes", &cpAttribKey)))
-            {
-                LPWSTR wValue;
-                if (SUCCEEDED(cpAttribKey->GetStringValue(L"Language", &wValue)))
-                {
-                    languages.push_back(LocaleFromLcid(wValue));
-                    CoTaskMemFree(wValue);
-                }
+            CComPtr<ISpDataKey> cpAttribKey;
+            if (FAILED(cpToken->OpenKey(L"Attributes", &cpAttribKey))) continue;
 
-                cpAttribKey->Release();
-            }
+            LPWSTR wValue;
+            if (FAILED(cpAttribKey->GetStringValue(L"Language", &wValue))) continue;
 
-            pToken->Release();
+            languages.push_back(LocaleFromLcid(wValue));
+            CoTaskMemFree(wValue);
         }
-
-        cpEnum->Release();
 
         return languages;
     }
@@ -233,11 +214,17 @@ namespace stts {
 
             // SAPI accepts one registration per context. Do it once, here.
             hr = m_pRecoContext->SetNotifyCallbackFunction((SPNOTIFYCALLBACK*)Stt::RecoEventCallback, (WPARAM)this, 0);
-            if (FAILED(hr)) return hr;
 
             auto interests = SPFEI(SPEI_RECOGNITION) | SPFEI(SPEI_HYPOTHESIS);
-            hr = m_pRecoContext->SetInterest(interests, interests);
-            if (FAILED(hr)) return hr;
+            if (SUCCEEDED(hr)) hr = m_pRecoContext->SetInterest(interests, interests);
+
+            // Retry the registration on next call.
+            if (FAILED(hr))
+            {
+                m_pRecoContext->Release();
+                m_pRecoContext = NULL;
+                return hr;
+            }
         }
         if (m_pRecoGrammar == NULL)
         {

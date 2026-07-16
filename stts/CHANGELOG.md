@@ -19,6 +19,7 @@
 * fix(windows): Keep STT recognition context alive until dispose.
 * fix(windows): Return empty list when TTS voices cannot be enumerated.
 * fix(windows): Encode SAPI strings as UTF-8.
+* fix(windows): Release SAPI interfaces on error paths.
 
 ## 1.3.3
 * fix(ios): allowBluetooth deprecation.
