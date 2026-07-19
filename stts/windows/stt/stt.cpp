@@ -140,6 +140,8 @@ namespace stts {
     }
 
     void Stt::Start() {
+        if (m_isListening) return;
+
         ThrowIfFailed(CreateRecognizer());
 
         ISpObjectToken* token = NULL;
@@ -152,6 +154,7 @@ namespace stts {
 
         ThrowIfFailed(m_pRecoGrammar->LoadDictation(NULL, SPLO_STATIC));
         ThrowIfFailed(m_pRecoGrammar->SetDictationState(SPRS_ACTIVE));
+        ThrowIfFailed(m_pRecognizer->SetRecoState(SPRST_ACTIVE));
 
         m_isListening = true;
         m_stateEventHandler->Success(flutter::EncodableValue(1));
@@ -169,6 +172,12 @@ namespace stts {
         {
             m_pRecoGrammar->SetDictationState(SPRS_INACTIVE);
             m_pRecoGrammar->UnloadDictation();
+        }
+
+        // A running engine can't be reconfigured (SPERR_ENGINE_BUSY), e.g. input or language.
+        if (m_pRecognizer)
+        {
+            m_pRecognizer->SetRecoState(SPRST_INACTIVE_WITH_PURGE);
         }
 
         m_stateEventHandler->Success(flutter::EncodableValue(0));

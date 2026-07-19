@@ -20,6 +20,7 @@
 * fix(windows): Return empty list when TTS voices cannot be enumerated.
 * fix(windows): Encode SAPI strings as UTF-8.
 * fix(windows): Release SAPI interfaces on error paths.
+* fix(windows): Allow STT restart right after stop.
 
 ## 1.3.3
 * fix(ios): allowBluetooth deprecation.
