@@ -22,6 +22,7 @@
 * fix(windows): Release SAPI interfaces on error paths.
 * fix(windows): Allow STT restart right after stop.
 * fix(windows): Identify TTS voices by token id.
+* fix(windows): Handle all queued STT events, drop the ones of a stopped session.
 
 ## 1.3.3
 * fix(ios): allowBluetooth deprecation.

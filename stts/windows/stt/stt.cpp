@@ -25,9 +25,11 @@ namespace stts {
         if (pThis->m_pRecoContext == NULL) return;
 
         CSpEvent event;
-        if (event.GetFrom(pThis->m_pRecoContext) == S_OK)
+        // A notification may cover several events.
+        while (event.GetFrom(pThis->m_pRecoContext) == S_OK)
         {
-            if (SPEI_HYPOTHESIS == event.eEventId || SPEI_RECOGNITION == event.eEventId)
+            // Events of a stopped session may still be queued.
+            if (pThis->m_isListening && (SPEI_HYPOTHESIS == event.eEventId || SPEI_RECOGNITION == event.eEventId))
             {
                 LPWSTR dstrText;
                 HRESULT hr = event.RecoResult()->GetText((ULONG)SP_GETWHOLEPHRASE, (ULONG)SP_GETWHOLEPHRASE, TRUE, &dstrText, NULL);
