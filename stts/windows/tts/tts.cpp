@@ -191,27 +191,11 @@ namespace stts {
     {
         ThrowIfFailed(CreateVoice());
 
-        CComPtr<IEnumSpObjectTokens> cpEnum;
-        ThrowIfFailed(SpEnumTokens(SPCAT_VOICES, NULL, NULL, &cpEnum));
+        CComPtr<ISpObjectToken> cpToken;
+        // Unknown voice, keep the current one.
+        if (FAILED(SpGetTokenFromId(Utf16FromUtf8(voiceId).c_str(), &cpToken))) return;
 
-        while (true)
-        {
-            CComPtr<ISpObjectToken> cpToken;
-            if (cpEnum->Next(1, &cpToken, NULL) != S_OK) break;
-
-            LPWSTR wValue;
-            // Skip the voice when its registration is incomplete.
-            if (FAILED(cpToken->GetStringValue(L"CLSID", &wValue))) continue;
-
-            auto tokenId = Utf8FromUtf16(wValue);
-            CoTaskMemFree(wValue);
-
-            if (voiceId == tokenId)
-            {
-                ThrowIfFailed(m_pVoice->SetVoice(cpToken));
-                return;
-            }
-        }
+        ThrowIfFailed(m_pVoice->SetVoice(cpToken));
     }
 
     std::vector<TtsVoice> Tts::GetVoices()
@@ -243,7 +227,8 @@ namespace stts {
     {
         LPWSTR wValue;
 
-        if (FAILED(pToken->GetStringValue(L"CLSID", &wValue))) return false;
+        // Not the CLSID, which is shared by voices of the same engine.
+        if (FAILED(pToken->GetId(&wValue))) return false;
         voice.id = Utf8FromUtf16(wValue);
         CoTaskMemFree(wValue);
 
