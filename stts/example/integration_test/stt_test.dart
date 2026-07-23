@@ -101,6 +101,45 @@ void main() {
     );
   });
 
+  testWidgets('sets language after a session', (_) async {
+    if (!await sttReady()) return;
+
+    await stt.start();
+    final started = await states.waitFor(SttState.start);
+    await stt.stop();
+    final stopped = await states.waitFor(SttState.stop, from: started);
+
+    final current = await stt.getLanguage();
+    final languages = await stt.getLanguages();
+    final language = languages.firstWhere(
+      (l) => l.toLowerCase() != current.toLowerCase(),
+      orElse: () => current,
+    );
+    await stt.setLanguage(language);
+    expect((await stt.getLanguage()).toLowerCase(), language.toLowerCase());
+
+    await stt.start();
+    final restarted = await states.waitFor(SttState.start, from: stopped);
+    await stt.stop();
+    await states.waitFor(
+      SttState.stop,
+      from: restarted,
+      timeout: const Duration(seconds: 5),
+    );
+  });
+
+  testWidgets('start while listening is ignored', (_) async {
+    if (!await sttReady()) return;
+
+    await stt.start();
+    final started = await states.waitFor(SttState.start);
+
+    await stt.start();
+    await Future<void>.delayed(const Duration(seconds: 1));
+    expect(states.events.sublist(started + 1), isEmpty);
+    expect(states.errors, isEmpty);
+  }, skip: !isWindows);
+
   testWidgets('stop without session', (_) async {
     if (!await sttReady()) return;
 

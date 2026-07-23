@@ -88,6 +88,49 @@ void main() {
     expect((await tts.getLanguage()).toLowerCase(), language.toLowerCase());
   });
 
+  testWidgets('voices have unique ids', (_) async {
+    if (!await ttsReady()) return;
+
+    final ids = (await tts.getVoices()).map((v) => v.id).toList();
+    expect(ids.toSet(), hasLength(ids.length));
+  });
+
+  // One installed voice per language, a few languages at most.
+  Future<List<TtsVoice>> voicePerLanguage() async {
+    final voices = <String, TtsVoice>{};
+    for (final voice in await tts.getVoices()) {
+      if (voice.languageInstalled && !voice.networkRequired) {
+        voices.putIfAbsent(voice.language, () => voice);
+      }
+    }
+    return voices.values.take(5).toList();
+  }
+
+  testWidgets('sets each language', (_) async {
+    if (!await ttsReady()) return;
+
+    for (final voice in await voicePerLanguage()) {
+      await tts.setLanguage(voice.language);
+      expect(
+        (await tts.getLanguage()).toLowerCase(),
+        voice.language.toLowerCase(),
+      );
+    }
+  });
+
+  testWidgets('sets each voice', (_) async {
+    if (!await ttsReady()) return;
+
+    for (final voice in await voicePerLanguage()) {
+      await tts.setVoice(voice.id);
+      expect(
+        (await tts.getLanguage()).toLowerCase(),
+        voice.language.toLowerCase(),
+        reason: 'Voice ${voice.name} not selected',
+      );
+    }
+  });
+
   testWidgets('normalizes language tag', (_) async {
     if (!await ttsReady()) return;
 
@@ -173,6 +216,28 @@ void main() {
     // Nothing is left to speak.
     final after = await states.eventsDuring(const Duration(seconds: 3));
     expect(after, isNot(contains(TtsState.start)));
+  });
+
+  testWidgets('speaks again right after stop', (_) async {
+    if (!await ttsReady()) return;
+
+    await tts.start(_longText);
+    await states.waitFor(TtsState.start);
+
+    await tts.stop();
+    await tts.start(_longText);
+    await Future<void>.delayed(const Duration(seconds: 2));
+
+    // The stopped speech doesn't end the new one.
+    expect(states.events.last, TtsState.start, reason: '${states.events}');
+
+    final restarted = states.events.length - 1;
+    await tts.stop();
+    await states.waitFor(
+      TtsState.stop,
+      from: restarted,
+      timeout: const Duration(seconds: 3),
+    );
   });
 
   testWidgets('pause and resume', (_) async {
