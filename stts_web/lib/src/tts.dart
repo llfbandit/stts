@@ -250,6 +250,11 @@ class Tts extends TtsPlatformInterface {
       // this event may be triggered even when canceling.
       if (_pauseRequested) return;
 
+      // Cancelled utterances fire it too. Skip the ones we dropped.
+      if (_utterances.isEmpty || !identical(_utterances.first, utterance)) {
+        return;
+      }
+
       _utterances.removeAt(0);
       if (_utterances.isEmpty) {
         _updateState(TtsState.stop);

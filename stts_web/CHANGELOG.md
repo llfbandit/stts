@@ -1,3 +1,6 @@
+## 1.1.2
+* fix(TTS): Ignore end event from cancelled utterances.
+
 ## 1.1.1
 * fix(STT): Don't emit SttState.stop twice.
 
