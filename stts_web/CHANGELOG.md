@@ -1,5 +1,6 @@
 ## 1.1.2
 * fix(TTS): Ignore end event from cancelled utterances.
+* fix(TTS): Wait for browser to load voices.
 
 ## 1.1.1
 * fix(STT): Don't emit SttState.stop twice.

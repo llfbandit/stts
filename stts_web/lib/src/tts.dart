@@ -16,6 +16,7 @@ class Tts extends TtsPlatformInterface {
   var _utteranceLastPosition = 0;
   final _utterances = <SpeechSynthesisUtterance>[];
   var _pauseRequested = false;
+  Future<void>? _voicesReady;
 
   Tts() {
     // Sanity check & preload languages.
@@ -123,13 +124,13 @@ class Tts extends TtsPlatformInterface {
   Future<List<String>> getLanguages() async {
     if (!_isSupported()) return [];
 
-    final voices = _synth.getVoices().toDart;
+    final voices = await _loadVoices();
     return voices.map((voice) => voice.lang).toSet().toList(growable: false);
   }
 
   @override
   Future<void> setVoice(String voiceId) async {
-    final voices = _synth.getVoices().toDart;
+    final voices = await _loadVoices();
 
     for (var voice in voices) {
       if (voice.name == voiceId) {
@@ -143,7 +144,7 @@ class Tts extends TtsPlatformInterface {
   Future<List<TtsVoice>> getVoices() async {
     if (!_isSupported()) return [];
 
-    final voices = _synth.getVoices().toDart;
+    final voices = await _loadVoices();
     return voices
         .map((voice) => _mapVoice(voice))
         .toSet()
@@ -154,7 +155,7 @@ class Tts extends TtsPlatformInterface {
   Future<List<TtsVoice>> getVoicesByLanguage(String language) async {
     if (!_isSupported()) return [];
 
-    final voices = _synth.getVoices().toDart;
+    final voices = await _loadVoices();
     return voices
         .where((voice) => voice.lang == language)
         .map((voice) => _mapVoice(voice))
@@ -227,6 +228,38 @@ class Tts extends TtsPlatformInterface {
   }
 
   SpeechSynthesis get _synth => window.speechSynthesis;
+
+  /// Gets the voices, waiting for the browser to load them if needed.
+  Future<List<SpeechSynthesisVoice>> _loadVoices() async {
+    var voices = _synth.getVoices().toDart;
+
+    if (voices.isEmpty) {
+      // Chrome fills the list asynchronously. Wait for it once.
+      _voicesReady ??= _awaitVoices();
+      await _voicesReady;
+
+      voices = _synth.getVoices().toDart;
+    }
+
+    return voices;
+  }
+
+  Future<void> _awaitVoices() {
+    final completer = Completer<void>();
+
+    // Don't take over onvoiceschanged, the app may use it.
+    final onChanged = (Event event) {
+      if (!completer.isCompleted) completer.complete();
+    }.toJS;
+    _synth.addEventListener('voiceschanged', onChanged);
+
+    // Give up when the browser has no voice to report.
+    return completer.future
+        .timeout(const Duration(seconds: 2), onTimeout: () {})
+        .whenComplete(
+          () => _synth.removeEventListener('voiceschanged', onChanged),
+        );
+  }
 
   SpeechSynthesisUtterance _addUtterance(String text) {
     final utterance = SpeechSynthesisUtterance(text)
