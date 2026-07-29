@@ -77,10 +77,18 @@ class Tts extends TtsPlatformInterface {
     if (_utterances.isEmpty) return;
 
     // Replay first utterance from last known position
-    if (_utteranceLastPosition != 0) {
-      final utterance = _utterances[0];
-      _utterances[0].text = utterance.text.substring(
-        _utteranceLastPosition.clamp(0, utterance.text.length - 1),
+    final first = _utterances[0];
+    final position = _utteranceLastPosition.clamp(0, first.text.length);
+    // Boundaries now count from the text we cut.
+    _utteranceLastPosition = 0;
+
+    // Cancelled utterances may still report events.
+    // Speak copies to tell them apart.
+    for (var i = 0; i < _utterances.length; i++) {
+      final utterance = _utterances[i];
+      _utterances[i] = _createUtterance(
+        i == 0 ? utterance.text.substring(position) : utterance.text,
+        from: utterance,
       );
     }
 
@@ -262,11 +270,22 @@ class Tts extends TtsPlatformInterface {
   }
 
   SpeechSynthesisUtterance _addUtterance(String text) {
+    final utterance = _createUtterance(text);
+    _utterances.add(utterance);
+
+    return utterance;
+  }
+
+  // Settings are taken from [from] when given, or from current ones.
+  SpeechSynthesisUtterance _createUtterance(
+    String text, {
+    SpeechSynthesisUtterance? from,
+  }) {
     final utterance = SpeechSynthesisUtterance(text)
-      ..pitch = _pitch
-      ..rate = _rate
-      ..voice = _voice
-      ..volume = _volume;
+      ..pitch = from?.pitch ?? _pitch
+      ..rate = from?.rate ?? _rate
+      ..voice = from != null ? from.voice : _voice
+      ..volume = from?.volume ?? _volume;
 
     utterance.onerror = (SpeechSynthesisErrorEvent event) {
       if (event.error == 'canceled' || event.error == 'interrupted') return;
@@ -289,18 +308,25 @@ class Tts extends TtsPlatformInterface {
       }
 
       _utterances.removeAt(0);
+
+      // The position belongs to the utterance we just dropped.
+      _utteranceLastPosition = 0;
+
       if (_utterances.isEmpty) {
         _updateState(TtsState.stop);
       }
     }.toJS;
 
     utterance.onboundary = (SpeechSynthesisEvent event) {
+      // The position belongs to the utterance being spoken.
+      if (_utterances.isEmpty || !identical(_utterances.first, utterance)) {
+        return;
+      }
+
       if (event.name == 'word') {
         _utteranceLastPosition = event.charIndex;
       }
     }.toJS;
-
-    _utterances.add(utterance);
 
     return utterance;
   }
