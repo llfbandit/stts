@@ -3,6 +3,7 @@
 * fix(TTS): Wait for browser to load voices.
 * fix(TTS): Reset resume position per utterance.
 * fix(STT): Guard against double start.
+* fix(TTS): Ignore resume when not paused.
 
 ## 1.1.1
 * fix(STT): Don't emit SttState.stop twice.

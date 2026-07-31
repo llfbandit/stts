@@ -71,7 +71,7 @@ class Tts extends TtsPlatformInterface {
 
   @override
   Future<void> resume() async {
-    if (!_isSupported()) return;
+    if (!_isSupported() || !_pauseRequested) return;
 
     _pauseRequested = false;
     if (_utterances.isEmpty) return;
