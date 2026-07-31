@@ -48,7 +48,7 @@ class Stt extends SttPlatformInterface {
   Future<List<String>> getLanguages() async {
     if (!_isSupported()) return [];
 
-    final lang = _recognizer.lang;
+    final lang = _createSpeechRecognition()?.lang ?? '';
     if (lang.isNotEmpty) {
       return [lang];
     }
@@ -60,22 +60,27 @@ class Stt extends SttPlatformInterface {
   Future<void> start([SttRecognitionOptions? options]) async {
     if (!_isSupported()) return;
 
-    _recognizer.continuous = false;
-    _recognizer.lang = _language;
-    _recognizer.interimResults = true;
-    _recognizer.maxAlternatives = 0;
+    // Starting twice throws. A recognizer is kept while listening only.
+    if (_recognizerInstance != null) return;
+
+    final recognizer = _createSpeechRecognition()!
+      ..continuous = false
+      ..lang = _language
+      ..interimResults = true
+      ..maxAlternatives = 0;
 
     if (options case final options?) {
-      _setRecognitionOptions(options);
+      _setRecognitionOptions(recognizer, options);
     }
 
-    _recognizer.onerror = _onError.toJS;
-    _recognizer.onstart = _onStart.toJS;
-    _recognizer.onend = _onEnd.toJS;
-    _recognizer.onnomatch = _onNoMatch.toJS;
-    _recognizer.onresult = _onResult.toJS;
+    recognizer.onerror = _onError.toJS;
+    recognizer.onstart = _onStart.toJS;
+    recognizer.onend = _onEnd.toJS;
+    recognizer.onnomatch = _onNoMatch.toJS;
+    recognizer.onresult = _onResult.toJS;
 
-    _recognizer.start();
+    recognizer.start();
+    _recognizerInstance = recognizer;
   }
 
   @override
@@ -108,13 +113,6 @@ class Stt extends SttPlatformInterface {
   ///////////////////////////////////////////////////////
   // Private section
   ///////////////////////////////////////////////////////
-
-  SpeechRecognition get _recognizer {
-    _recognizerInstance ??= _createSpeechRecognition();
-    assert(_recognizerInstance != null, 'SpeechRecognition is not supported.');
-
-    return _recognizerInstance!;
-  }
 
   void _updateState(SttState state) {
     final ctrl = _stateStreamCtrl;
@@ -162,7 +160,10 @@ class Stt extends SttPlatformInterface {
     _updateState(SttState.stop);
   }
 
-  void _setRecognitionOptions(SttRecognitionOptions options) {
+  void _setRecognitionOptions(
+    SpeechRecognition recognizer,
+    SttRecognitionOptions options,
+  ) {
     if (options.contextualStrings.isNotEmpty) {
       final grammars = _createGrammarList();
 
@@ -174,7 +175,7 @@ class Stt extends SttPlatformInterface {
           ..write(' ;');
 
         grammars.addFromString(grammarsString.toString().toJS, 1.toJS);
-        _recognizer.grammars = grammars;
+        recognizer.grammars = grammars;
       }
     }
   }

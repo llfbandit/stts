@@ -2,6 +2,7 @@
 * fix(TTS): Ignore end event from cancelled utterances.
 * fix(TTS): Wait for browser to load voices.
 * fix(TTS): Reset resume position per utterance.
+* fix(STT): Guard against double start.
 
 ## 1.1.1
 * fix(STT): Don't emit SttState.stop twice.
