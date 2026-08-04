@@ -4,6 +4,7 @@
 * fix(TTS): Reset resume position per utterance.
 * fix(STT): Guard against double start.
 * fix(TTS): Ignore resume when not paused.
+* fix(TTS): Keep voice and language in sync, apply language to speech.
 
 ## 1.1.1
 * fix(STT): Don't emit SttState.stop twice.

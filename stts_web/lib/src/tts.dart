@@ -123,6 +123,18 @@ class Tts extends TtsPlatformInterface {
     if (!_isSupported()) return;
 
     _language = language;
+
+    // Keep the voice when it already speaks this language.
+    if (_voice?.lang.toLowerCase() == language.toLowerCase()) return;
+
+    // Set first matching voice. Without one, the browser picks it from utterance language.
+    _voice = null;
+    for (var voice in await _loadVoices()) {
+      if (voice.lang.toLowerCase() == language.toLowerCase()) {
+        _voice = voice;
+        return;
+      }
+    }
   }
 
   @override
@@ -138,11 +150,14 @@ class Tts extends TtsPlatformInterface {
 
   @override
   Future<void> setVoice(String voiceId) async {
+    if (!_isSupported()) return;
+
     final voices = await _loadVoices();
 
     for (var voice in voices) {
       if (voice.name == voiceId) {
         _voice = voice;
+        _language = voice.lang;
         return;
       }
     }
@@ -176,6 +191,7 @@ class Tts extends TtsPlatformInterface {
     await stop();
 
     _language = window.navigator.language;
+    _voice = null;
     _stateStreamCtrl?.close();
     _stateStreamCtrl = null;
   }
@@ -282,6 +298,7 @@ class Tts extends TtsPlatformInterface {
     SpeechSynthesisUtterance? from,
   }) {
     final utterance = SpeechSynthesisUtterance(text)
+      ..lang = from?.lang ?? _language
       ..pitch = from?.pitch ?? _pitch
       ..rate = from?.rate ?? _rate
       ..voice = from != null ? from.voice : _voice
