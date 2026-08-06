@@ -43,17 +43,13 @@ class Stt extends SttPlatformInterface {
   Future<void> setLanguage(String language) async => _language = language;
 
   // There's no feature to retrieve the supported languages.
-  // Provide the default value from the recognizer if any.
+  // Provide the default value from the recognizer, or the browser one.
   @override
   Future<List<String>> getLanguages() async {
     if (!_isSupported()) return [];
 
     final lang = _createSpeechRecognition()?.lang ?? '';
-    if (lang.isNotEmpty) {
-      return [lang];
-    }
-
-    return [];
+    return [lang.isNotEmpty ? lang : window.navigator.language];
   }
 
   @override

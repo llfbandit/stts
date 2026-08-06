@@ -6,6 +6,7 @@
 * fix(TTS): Ignore resume when not paused.
 * fix(TTS): Keep voice and language in sync, apply language to speech.
 * fix(STT): Detach handlers of stopped recognizers.
+* fix(STT): Report browser language when the recognizer has none.
 
 ## 1.1.1
 * fix(STT): Don't emit SttState.stop twice.
