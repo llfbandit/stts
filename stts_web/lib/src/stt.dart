@@ -94,8 +94,10 @@ class Stt extends SttPlatformInterface {
     await _resultStreamCtrl?.close();
     _resultStreamCtrl = null;
 
-    _recognizerInstance?.stop();
-    _recognizerInstance = null;
+    if (_recognizerInstance case final instance?) {
+      _recognizerInstance = null;
+      _release(instance);
+    }
   }
 
   @override
@@ -154,10 +156,20 @@ class Stt extends SttPlatformInterface {
     if (instance == null) return;
 
     _recognizerInstance = null;
-    instance.onend = null;
-    instance.stop();
+    _release(instance);
 
     _updateState(SttState.stop);
+  }
+
+  // Late events of a dropped recognizer would act on the next session.
+  void _release(SpeechRecognition recognizer) {
+    recognizer
+      ..onerror = null
+      ..onstart = null
+      ..onend = null
+      ..onnomatch = null
+      ..onresult = null
+      ..stop();
   }
 
   void _setRecognitionOptions(

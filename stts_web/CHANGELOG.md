@@ -5,6 +5,7 @@
 * fix(STT): Guard against double start.
 * fix(TTS): Ignore resume when not paused.
 * fix(TTS): Keep voice and language in sync, apply language to speech.
+* fix(STT): Detach handlers of stopped recognizers.
 
 ## 1.1.1
 * fix(STT): Don't emit SttState.stop twice.
