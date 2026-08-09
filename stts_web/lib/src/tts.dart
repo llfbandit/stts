@@ -190,10 +190,9 @@ class Tts extends TtsPlatformInterface {
   Future<void> dispose() async {
     await stop();
 
+    // State stream stays open, the instance may be used again as on other platforms.
     _language = window.navigator.language;
     _voice = null;
-    _stateStreamCtrl?.close();
-    _stateStreamCtrl = null;
   }
 
   @override

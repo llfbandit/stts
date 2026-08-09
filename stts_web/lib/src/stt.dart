@@ -82,19 +82,9 @@ class Stt extends SttPlatformInterface {
   @override
   Future<void> stop() async => _stop();
 
+  // Streams stay open, the instance may be used again as on other platforms.
   @override
-  Future<void> dispose() async {
-    await _stateStreamCtrl?.close();
-    _stateStreamCtrl = null;
-
-    await _resultStreamCtrl?.close();
-    _resultStreamCtrl = null;
-
-    if (_recognizerInstance case final instance?) {
-      _recognizerInstance = null;
-      _release(instance);
-    }
-  }
+  Future<void> dispose() async => _stop();
 
   @override
   Stream<SttState> get onStateChanged {
