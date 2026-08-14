@@ -250,6 +250,11 @@ class Stt {
     let inputNode = audioEngine.inputNode
     let format = inputNode.inputFormat(forBus: 0)
 
+    // installTap raises an exception that Swift can't catch on this format (e.g. no input route, playback only category).
+    guard format.sampleRate > 0 && format.channelCount > 0 else {
+      throw SttError.error("Audio input is not available.")
+    }
+
     // Remove any stale tap before installing — avoids crash when start() is called
     // while a previous tap removal is still in-flight on the recognition callback queue.
     inputNode.removeTap(onBus: 0)
