@@ -67,6 +67,7 @@ class Stt {
   private var resultEventHandler: SttResultStreamHandler
   
   private var manageAudioSession = true
+  private var savedAudioSession: (category: AVAudioSession.Category, mode: AVAudioSession.Mode, options: AVAudioSession.CategoryOptions)?
   
   init(stateEventHandler: SttStateStreamHandler, resultEventHandler: SttResultStreamHandler) {
     self.stateEventHandler = stateEventHandler
@@ -132,7 +133,15 @@ class Stt {
     recognitionTask = nil
     
     recognizer = nil
-    
+
+    if let saved = savedAudioSession {
+      savedAudioSession = nil
+      let session = AVAudioSession.sharedInstance()
+      // Let other apps restore their volume. Restore the category after, so it doesn't interrupt them.
+      try? session.setActive(false, options: .notifyOthersOnDeactivation)
+      try? session.setCategory(saved.category, mode: saved.mode, options: saved.options)
+    }
+
     stateEventHandler.sendEvent(SttState.stop)
   }
   
@@ -227,6 +236,9 @@ class Stt {
 
     // setup audio
     if manageAudioSession {
+      let session = AVAudioSession.sharedInstance()
+      savedAudioSession = (session.category, session.mode, session.categoryOptions)
+
       #if compiler(<6.2)
       try setAudioSessionCategory(.playAndRecord, options: [.duckOthers, .defaultToSpeaker, .allowBluetooth, .allowBluetoothA2DP])
       #else
