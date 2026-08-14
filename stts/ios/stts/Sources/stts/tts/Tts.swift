@@ -162,6 +162,11 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   func setLanguage(_ language: String) {
     if let voice = AVSpeechSynthesisVoice.speechVoices().first(where: {$0.language == language}) {
       self.language = voice.language
+
+      // Drop a voice of another language, the system then picks the default voice of this one.
+      if let voiceId, AVSpeechSynthesisVoice(identifier: voiceId)?.language != voice.language {
+        self.voiceId = nil
+      }
     }
   }
   
@@ -176,6 +181,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   func setVoice(_ voiceId: String) {
     if let voice = AVSpeechSynthesisVoice.speechVoices().first(where: {$0.identifier == voiceId}) {
       self.voiceId = voice.identifier
+      self.language = voice.language
     }
   }
   
