@@ -112,15 +112,29 @@ class Stt {
   }
   
   func start(_ options: SttRecognitionOptions) throws {
-    try prepareRecognition(options)
-    
-    audioEngine.prepare()
-    try audioEngine.start()
-    
+    do {
+      try prepareRecognition(options)
+
+      audioEngine.prepare()
+      try audioEngine.start()
+    } catch {
+      release()
+      throw error
+    }
+
     stateEventHandler.sendEvent(SttState.start)
   }
-  
+
   func stop() {
+    release()
+
+    stateEventHandler.sendEvent(SttState.stop)
+  }
+
+  private func release() {
+    // Nothing is set up before the task. Reading inputNode would also open the microphone.
+    guard recognitionTask != nil else { return }
+
     stopTimer?.invalidate()
     
     recognitionRequest?.endAudio()
@@ -141,8 +155,6 @@ class Stt {
       try? session.setActive(false, options: .notifyOthersOnDeactivation)
       try? session.setCategory(saved.category, mode: saved.mode, options: saved.options)
     }
-
-    stateEventHandler.sendEvent(SttState.stop)
   }
   
   func manageAudioSession(_ manage: Bool) {

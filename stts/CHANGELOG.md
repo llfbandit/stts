@@ -1,4 +1,5 @@
 ## 1.3.4
+* fix(ios): Release STT resources when start fails.
 * fix(ios): Report STT error instead of crashing when audio input is not available.
 * fix(ios): Keep TTS voice and language in sync.
 * fix(ios): Restore the audio session on STT stop when the plugin manages it.
