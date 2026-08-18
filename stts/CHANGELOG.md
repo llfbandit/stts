@@ -1,4 +1,5 @@
 ## 1.3.4
+* fix(ios): Don't read STT request from the audio thread.
 * fix(ios): Default STT language to a supported one.
 * fix(ios): Ignore STT start while listening.
 * fix(ios): Release STT resources when start fails.

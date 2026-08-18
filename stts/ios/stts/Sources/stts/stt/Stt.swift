@@ -143,12 +143,12 @@ class Stt {
 
     stopTimer?.invalidate()
     
-    recognitionRequest?.endAudio()
-    recognitionRequest = nil
-    
     audioEngine.stop()
     audioEngine.inputNode.removeTap(onBus: 0)
-    
+
+    recognitionRequest?.endAudio()
+    recognitionRequest = nil
+
     recognitionTask?.cancel()
     recognitionTask = nil
     
@@ -309,11 +309,9 @@ class Stt {
     // while a previous tap removal is still in-flight on the recognition callback queue.
     inputNode.removeTap(onBus: 0)
 
-    // feed our recognition task with request
-    inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] (buffer, when) in
-      guard let self = self else { return }
-
-      self.recognitionRequest?.append(buffer)
+    // Feed the local request, the tap runs on the audio thread while stop() clears the property.
+    inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { (buffer, when) in
+      recognitionRequest.append(buffer)
     }
   }
 }
