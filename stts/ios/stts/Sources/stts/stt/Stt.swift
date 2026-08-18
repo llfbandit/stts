@@ -112,6 +112,12 @@ class Stt {
   }
   
   func start(_ options: SttRecognitionOptions) throws {
+    if recognitionTask != nil {
+      if audioEngine.isRunning { return }
+      // The engine stopped without us (e.g. phone call), end this session before a new one.
+      stop()
+    }
+
     do {
       try prepareRecognition(options)
 

@@ -138,7 +138,7 @@ void main() {
     await Future<void>.delayed(const Duration(seconds: 1));
     expect(states.events.sublist(started + 1), isEmpty);
     expect(states.errors, isEmpty);
-  }, skip: !isWindows);
+  }, skip: !isWindows && !isIOS);
 
   testWidgets('stop without session', (_) async {
     if (!await sttReady()) return;

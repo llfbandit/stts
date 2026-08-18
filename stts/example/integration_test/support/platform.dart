@@ -5,6 +5,8 @@ import 'package:flutter_test/flutter_test.dart';
 bool get isAndroid =>
     !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
+bool get isIOS => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
 /// Skips the current test and returns false.
 ///
 /// Also prints the [reason], `flutter test` doesn't report it.
