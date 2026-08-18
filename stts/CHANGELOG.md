@@ -1,4 +1,5 @@
 ## 1.3.4
+* fix(ios): Default STT language to a supported one.
 * fix(ios): Ignore STT start while listening.
 * fix(ios): Release STT resources when start fails.
 * fix(ios): Report STT error instead of crashing when audio input is not available.

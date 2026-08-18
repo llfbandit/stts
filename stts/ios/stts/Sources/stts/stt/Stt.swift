@@ -55,7 +55,7 @@ class SttRecognitionOptions {
 }
 
 class Stt {
-  private var currentLanguage = Locale.preferredLanguages[0]
+  private lazy var currentLanguage = defaultLanguage()
   
   private let audioEngine = AVAudioEngine()
   private var recognizer: SFSpeechRecognizer?
@@ -181,6 +181,38 @@ class Stt {
     stop()
     
     manageAudioSession = true
+  }
+
+  // Preferred languages may have no recognizer (e.g. en-FR, zh-Hant-TW).
+  // Falls back to the same language, in the preferred region first (zh-TW), then in the most common one (en-US).
+  // Without any match (e.g. cy-GB), uses en-US or the first supported language.
+  private func defaultLanguage() -> String {
+    let supported = getLanguages().sorted()
+
+    for preferred in Locale.preferredLanguages {
+      if let match = supported.first(where: { $0 == preferred }) { return match }
+
+      let locale = Locale(identifier: preferred)
+      guard let code = locale.languageCode else { continue }
+
+      let sameLanguage = supported.filter { Locale(identifier: $0).languageCode == code }
+      for region in [locale.regionCode] + likelyRegions(code, locale.scriptCode) {
+        if let match = sameLanguage.first(where: { Locale(identifier: $0).regionCode == region }) { return match }
+      }
+      if let match = sameLanguage.first { return match }
+    }
+
+    return supported.first(where: { $0 == "en-US" }) ?? supported.first ?? "en-US"
+  }
+
+  private func likelyRegions(_ code: String, _ script: String?) -> [String] {
+    if #available(iOS 16, *) {
+      let language = [code, script].compactMap { $0 }.joined(separator: "-")
+      let likely = Locale.Language(identifier: language).maximalIdentifier
+      if let region = Locale.Language(identifier: likely).region?.identifier { return [region] }
+    }
+    // Guess without likely subtags (fr-FR, de-DE, en-US).
+    return [code.uppercased(), "US"]
   }
 
   private func prepareRecognition(_ options: SttRecognitionOptions) throws {
