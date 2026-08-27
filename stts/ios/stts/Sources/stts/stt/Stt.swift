@@ -62,6 +62,7 @@ class Stt {
   private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
   private var recognitionTask: SFSpeechRecognitionTask?
   private var stopTimer: Timer?
+  private var partialResult: String?
   
   private var stateEventHandler: SttStateStreamHandler
   private var resultEventHandler: SttResultStreamHandler
@@ -132,6 +133,11 @@ class Stt {
   }
 
   func stop() {
+    // Send the last partial result as final, the cancelled task won't do it.
+    if let partialResult, !partialResult.isEmpty {
+      resultEventHandler.sendEvent(partialResult, true)
+    }
+
     release()
 
     stateEventHandler.sendEvent(SttState.stop)
@@ -142,6 +148,7 @@ class Stt {
     guard recognitionTask != nil else { return }
 
     stopTimer?.invalidate()
+    partialResult = nil
     
     audioEngine.stop()
     audioEngine.inputNode.removeTap(onBus: 0)
@@ -262,19 +269,24 @@ class Stt {
           self.resultEventHandler.sendEvent(transcription.formattedString, isFinal)
         }
         if isFinal {
+          self.partialResult = nil
+        } else if !transcription.formattedString.isEmpty {
+          self.partialResult = transcription.formattedString
+        }
+
+        if isFinal {
           self.stop()
         } else if #available(iOS 13, *) {
           if !recognitionRequest.requiresOnDeviceRecognition {
             self.stopTimer?.invalidate()
             self.stopTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false) { [weak self] timer in
-              if !transcription.formattedString.isEmpty {
-                self?.resultEventHandler.sendEvent(transcription.formattedString, true)
-              }
               self?.stop()
             }
           }
         }
       } else if let error = error {
+        // Don't let stop() send the partial result as final after an error.
+        self.partialResult = nil
         self.stateEventHandler.sendErrorEvent(error)
         self.stop()
       }
