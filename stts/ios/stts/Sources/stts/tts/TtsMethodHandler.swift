@@ -13,14 +13,17 @@ class TtsMethodHandler {
       result(tts.isSupported())
 
     case "start":
-      let args = call.arguments as! [String: Any]
-      let text = args["text"] as! String
-      let mode = args["mode"] as! String
+      guard let text: String = arg(call, "text") else {
+        return invalidArg(result, "text")
+      }
+      guard let mode: String = arg(call, "mode"), let queueMode = TtsQueueMode(rawValue: mode) else {
+        return invalidArg(result, "mode")
+      }
 
       let options = TtsOptions(
-        queueMode: TtsQueueMode(rawValue: mode)!,
-        preSilenceMs: args["preSilence"] as? Int,
-        postSilenceMs: args["postSilence"] as? Int
+        queueMode: queueMode,
+        preSilenceMs: arg(call, "preSilence"),
+        postSilenceMs: arg(call, "postSilence")
       )
 
       tts.start(text, options: options)
@@ -29,71 +32,85 @@ class TtsMethodHandler {
     case "stop":
       tts.stop()
       result(nil)
-      
+
     case "pause":
       tts.pause()
       result(nil)
-      
+
     case "resume":
       tts.resume()
       result(nil)
-      
+
     case "getLanguage":
       result(tts.getLanguage())
-      
+
     case "setLanguage":
-      let args = call.arguments as! [String: Any]
-      let language = args["language"] as! String
-      
+      guard let language: String = arg(call, "language") else {
+        return invalidArg(result, "language")
+      }
+
       tts.setLanguage(language)
       result(nil)
 
     case "getLanguages":
       result(tts.getLanguages())
-      
+
     case "setVoice":
-      let args = call.arguments as! [String: Any]
-      let voice = args["voiceId"] as! String
-      
+      guard let voice: String = arg(call, "voiceId") else {
+        return invalidArg(result, "voiceId")
+      }
+
       tts.setVoice(voice)
       result(nil)
-      
+
     case "getVoices":
       result(tts.getVoices())
-      
+
     case "getVoicesByLanguage":
-      let args = call.arguments as! [String: Any]
-      let language = args["language"] as! String
-      
+      guard let language: String = arg(call, "language") else {
+        return invalidArg(result, "language")
+      }
+
       result(tts.getVoicesByLanguage(language))
-      
+
     case "setPitch":
-      let args = call.arguments as! [String: Any]
-      let pitch = args["pitch"] as! NSNumber
-      
+      guard let pitch: NSNumber = arg(call, "pitch") else {
+        return invalidArg(result, "pitch")
+      }
+
       tts.setPitch(pitch.floatValue)
       result(nil)
-      
+
     case "setRate":
-      let args = call.arguments as! [String: Any]
-      let rate = args["rate"] as! NSNumber
-      
+      guard let rate: NSNumber = arg(call, "rate") else {
+        return invalidArg(result, "rate")
+      }
+
       tts.setRate(rate.floatValue)
       result(nil)
-      
+
     case "setVolume":
-      let args = call.arguments as! [String: Any]
-      let volume = args["volume"] as! NSNumber
-      
+      guard let volume: NSNumber = arg(call, "volume") else {
+        return invalidArg(result, "volume")
+      }
+
       tts.setVolume(volume.floatValue)
       result(nil)
-      
+
     case "dispose":
       tts.dispose()
       result(nil)
-      
+
     default:
       result(FlutterMethodNotImplemented)
     }
+  }
+
+  private func arg<T>(_ call: FlutterMethodCall, _ name: String) -> T? {
+    return (call.arguments as? [String: Any])?[name] as? T
+  }
+
+  private func invalidArg(_ result: FlutterResult, _ name: String) {
+    result(FlutterError(code: "tts", message: "Missing or invalid parameter \(name).", details: nil))
   }
 }
