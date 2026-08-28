@@ -1,4 +1,5 @@
 ## 1.3.4
+* fix(ios): Ignore TTS finish events of flushed or stopped utterances.
 * fix(ios): Send last STT partial result as final on stop.
 * fix(ios): Don't read STT request from the audio thread.
 * fix(ios): Default STT language to a supported one.

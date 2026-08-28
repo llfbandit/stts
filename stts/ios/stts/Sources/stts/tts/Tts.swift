@@ -47,8 +47,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   private var rate: Float = 1.0 // 0.1 - 10.0
   private var volume: Float = 1.0 // 0.0 - 1.0
   private var voiceId: String?
-  private var utteranceQueued = 0
-  private var utteranceFinishTimer: Timer?
+  private var queuedUtterances = [AVSpeechUtterance]()
   
   init(_ ttsStateEventHandler: TtsStateStreamHandler) {
     self.ttsStateEventHandler = ttsStateEventHandler
@@ -74,8 +73,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     }
 
     if options.queueMode == TtsQueueMode.flush && ttsStateEventHandler.currentState != .stop {
-      utteranceQueued = 0
-      utteranceFinishTimer?.invalidate()
+      queuedUtterances.removeAll()
 
       synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
     }
@@ -98,7 +96,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
       utterance.voice = AVSpeechSynthesisVoice(language: language)
     }
 
-    utteranceQueued += 1
+    queuedUtterances.append(utterance)
 
     synthesizer?.speak(utterance)
     synthesizer?.continueSpeaking()
@@ -106,11 +104,10 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   }
   
   func stop() {
+    queuedUtterances.removeAll()
+
     synthesizer?.stopSpeaking(at: AVSpeechBoundary.immediate)
     ttsStateEventHandler.sendEvent(TtsState.stop)
-
-    utteranceQueued = 0
-    utteranceFinishTimer?.invalidate()
 
     synthesizer?.delegate = nil
     synthesizer = nil
@@ -207,7 +204,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
     setRate(1.0)
     volume = 1.0
     voiceId = nil
-    utteranceQueued = 0
+    queuedUtterances.removeAll()
     ttsStateEventHandler.currentState = .stop
   }
   
@@ -248,21 +245,30 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   }
   
   func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didFinish utterance: AVSpeechUtterance) {
-    if utteranceQueued == 0 { return }
+    // Ignore utterances flushed or stopped since, their events can still arrive.
+    if !queuedUtterances.contains(where: { $0 === utterance }) { return }
 
     // Delay slightly stop because this event is fired too soon!
     let defaultShift = 0.2
 
     // Delay stop because of postUtteranceDelay not taken into account
-    utteranceFinishTimer = Timer.scheduledTimer(withTimeInterval: defaultShift + utterance.postUtteranceDelay, repeats: false) { [weak self] timer in
-      guard let self = self else { return }
-      if self.utteranceQueued == 0 { return }
+    Timer.scheduledTimer(withTimeInterval: defaultShift + utterance.postUtteranceDelay, repeats: false) { [weak self] _ in
+      self?.dequeue(utterance)
+    }
+  }
 
-      self.utteranceQueued = max(0, self.utteranceQueued - 1)
+  // Cancelled by the system, stop() and flush already removed their utterances.
+  func speechSynthesizer(_ synthesizer: AVSpeechSynthesizer, didCancel utterance: AVSpeechUtterance) {
+    dequeue(utterance)
+  }
 
-      if self.utteranceQueued == 0 {
-        self.ttsStateEventHandler.sendEvent(TtsState.stop)
-      }
+  private func dequeue(_ utterance: AVSpeechUtterance) {
+    guard let index = queuedUtterances.firstIndex(where: { $0 === utterance }) else { return }
+
+    queuedUtterances.remove(at: index)
+
+    if queuedUtterances.isEmpty {
+      ttsStateEventHandler.sendEvent(TtsState.stop)
     }
   }
 }
