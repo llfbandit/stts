@@ -84,7 +84,7 @@ class Stt {
   }
   
   func setLanguage(_ language: String) {
-    if let language = getLanguages().first(where: { $0 == language }) {
+    if let language = getLanguages().first(where: { isSameLanguageTag($0, language) }) {
       currentLanguage = language
     }
   }
@@ -197,7 +197,7 @@ class Stt {
     let supported = getLanguages().sorted()
 
     for preferred in Locale.preferredLanguages {
-      if let match = supported.first(where: { $0 == preferred }) { return match }
+      if let match = supported.first(where: { isSameLanguageTag($0, preferred) }) { return match }
 
       let locale = Locale(identifier: preferred)
       guard let code = locale.languageCode else { continue }

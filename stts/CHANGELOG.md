@@ -1,4 +1,5 @@
 ## 1.3.4
+* fix(ios): Normalize language tags (e.g. en_US, en-us).
 * fix(ios): Return an error instead of crashing on invalid TTS arguments.
 * fix(ios): Ignore TTS finish events of flushed or stopped utterances.
 * fix(ios): Send last STT partial result as final on stop.

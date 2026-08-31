@@ -65,7 +65,7 @@ void main() {
 
     await stt.setLanguage('en_us');
     expect(await stt.getLanguage(), 'en-US');
-  }, skip: !isAndroid);
+  }, skip: !isAndroid && !isIOS);
 
   testWidgets('start then stop', (_) async {
     if (!await sttReady()) return;
