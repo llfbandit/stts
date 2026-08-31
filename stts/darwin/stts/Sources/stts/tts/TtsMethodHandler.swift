@@ -1,4 +1,8 @@
+#if os(iOS)
 import Flutter
+#else
+import FlutterMacOS
+#endif
 
 class TtsMethodHandler {
   private let tts: Tts

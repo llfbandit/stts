@@ -37,8 +37,10 @@ flutter:
         pluginClass: SttsPlugin
       ios:
         pluginClass: SttsPlugin
+        sharedDarwinSource: true
       macos:
         pluginClass: SttsPlugin
+        sharedDarwinSource: true
       web:
         default_package: stts_web
       windows:

@@ -1,75 +1,16 @@
+#if os(iOS)
 import Flutter
 import AVFAudio
 
-class SttMethodHandler {
-  private let stt: Stt
-
-  init(_ stt: Stt) {
-    self.stt = stt
-  }
-
-  public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+extension SttMethodHandler {
+  func handlePlatform(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     switch call.method {
-    case "isSupported":
-      result(stt.isSupported())
-      
-    case "hasPermission":
-      stt.hasPermission { granted in
-        DispatchQueue.main.async {
-          result(granted)
-        }
-      }
-      
-    case "getLanguage":
-      result(stt.getLanguage())
-      
-    case "setLanguage":
-      guard let args = call.arguments as? [String: Any] else {
-        result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
-        return
-      }
-      guard let language = args["language"] as? String else  {
-        result(FlutterError(code: "stt", message: "Call missing mandatory parameter language.", details: nil))
-        return
-      }
-
-      stt.setLanguage(language)
-      result(nil)
-      
-    case "getLanguages":
-      result(stt.getLanguages())
-      
-    case "start":
-      guard let args = call.arguments as? [String: Any] else {
-        result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
-        return
-      }
-      guard let options = args["options"] as? [String: Any] else  {
-        result(FlutterError(code: "stt", message: "Call missing mandatory parameter language.", details: nil))
-        return
-      }
-
-      do {
-        try stt.start(SttRecognitionOptions.fromMap(options))
-        result(nil)
-      } catch {
-        result(FlutterError(code: "stt", message: error.localizedDescription, details: nil))
-      }
-      
-    case "stop":
-      stt.stop()
-      result(nil)
-      
-    case "dispose":
-      stt.dispose()
-      result(nil)
-      
     case "ios.manageAudioSession":
       guard let manage = call.arguments as? Bool else {
         result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
         return
       }
-      stt.manageAudioSession(manage)
+      stt.audioSession.manage = manage
       result(nil)
     
     case "ios.setAudioSessionActive":
@@ -79,7 +20,7 @@ class SttMethodHandler {
       }
       
       do {
-        try stt.setAudioSessionActive(active)
+        try stt.audioSession.setActive(active)
         result(nil)
       } catch {
         result(FlutterError(code: "stt", message: error.localizedDescription, details: nil))
@@ -100,7 +41,7 @@ class SttMethodHandler {
       }
       
       do {
-        try stt.setAudioSessionCategory(toAVCategory(category), options: toAVCategoryOptions(options))
+        try stt.audioSession.setCategory(toAVCategory(category), options: toAVCategoryOptions(options))
         result(nil)
       } catch {
         result(FlutterError(code: "stt", message: error.localizedDescription, details: nil))
@@ -110,7 +51,7 @@ class SttMethodHandler {
       result(FlutterMethodNotImplemented)
     }
   }
-  
+
   private func toAVCategory(_ category: String) -> AVAudioSession.Category {
     switch category {
     case "ambient": return .ambient
@@ -145,3 +86,4 @@ class SttMethodHandler {
     return result
   }
 }
+#endif

@@ -1,22 +1,32 @@
+#if os(iOS)
+import Flutter
+#else
 import FlutterMacOS
+#endif
 
 public class SttsPlugin: NSObject, FlutterPlugin {
   public static func register(with registrar: FlutterPluginRegistrar) {
-    // STT
-    let sttMethodChannel = FlutterMethodChannel(name: "com.llfbandit.stt/methods", binaryMessenger: registrar.messenger)
+    #if os(iOS)
+    let messenger = registrar.messenger()
+    #else
+    let messenger = registrar.messenger
+    #endif
 
-    let sttStateEventChannel = FlutterEventChannel(name: "com.llfbandit.stt/states", binaryMessenger: registrar.messenger)
+    // STT
+    let sttMethodChannel = FlutterMethodChannel(name: "com.llfbandit.stt/methods", binaryMessenger: messenger)
+
+    let sttStateEventChannel = FlutterEventChannel(name: "com.llfbandit.stt/states", binaryMessenger: messenger)
     let sttStateEventHandler = SttStateStreamHandler()
     sttStateEventChannel.setStreamHandler(sttStateEventHandler)
 
-    let sttResultEventChannel = FlutterEventChannel(name: "com.llfbandit.stt/results", binaryMessenger: registrar.messenger)
+    let sttResultEventChannel = FlutterEventChannel(name: "com.llfbandit.stt/results", binaryMessenger: messenger)
     let sttResultEventHandler = SttResultStreamHandler()
     sttResultEventChannel.setStreamHandler(sttResultEventHandler)
     
     // TTS
-    let ttsMethodChannel = FlutterMethodChannel(name: "com.llfbandit.tts/methods", binaryMessenger: registrar.messenger)
+    let ttsMethodChannel = FlutterMethodChannel(name: "com.llfbandit.tts/methods", binaryMessenger: messenger)
 
-    let ttsStateEventChannel = FlutterEventChannel(name: "com.llfbandit.tts/states", binaryMessenger: registrar.messenger)
+    let ttsStateEventChannel = FlutterEventChannel(name: "com.llfbandit.tts/states", binaryMessenger: messenger)
     let ttsStateEventHandler = TtsStateStreamHandler()
     ttsStateEventChannel.setStreamHandler(ttsStateEventHandler)
     
@@ -42,10 +52,17 @@ public class SttsPlugin: NSObject, FlutterPlugin {
     tts = Tts(ttsStateEventHandler)
   }
   
-  public func applicationWillTerminate(_ application: NSApplicationDelegate) {
+  #if os(iOS)
+  public func applicationWillTerminate(_ application: UIApplication) {
     stt.dispose()
     tts.dispose()
   }
+  #else
+  public func handleWillTerminate(_ notification: Notification) {
+    stt.dispose()
+    tts.dispose()
+  }
+  #endif
   
   public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
     stt.dispose()

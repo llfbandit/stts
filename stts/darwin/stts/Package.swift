@@ -6,6 +6,7 @@ import PackageDescription
 let package = Package(
     name: "stts",
     platforms: [
+       .iOS("12.0"),
        .macOS("10.15")
     ],
     products: [

@@ -1,4 +1,6 @@
 ## 1.3.4
+* fix(macos): Dispose STT and TTS when the app terminates.
+* refactor(darwin): Share iOS and macOS sources, macOS gets all iOS fixes below.
 * fix(ios): Normalize language tags (e.g. en_US, en-us).
 * fix(ios): Return an error instead of crashing on invalid TTS arguments.
 * fix(ios): Ignore TTS finish events of flushed or stopped utterances.

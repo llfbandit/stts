@@ -1,4 +1,8 @@
+#if os(iOS)
+import Flutter
+#else
 import FlutterMacOS
+#endif
 
 class TtsStateStreamHandler: NSObject, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?

@@ -1,7 +1,11 @@
+#if os(iOS)
+import Flutter
+#else
 import FlutterMacOS
+#endif
 
 class SttMethodHandler {
-  private let stt: Stt
+  let stt: Stt
 
   init(_ stt: Stt) {
     self.stt = stt
@@ -64,7 +68,7 @@ class SttMethodHandler {
       result(nil)
       
     default:
-      result(FlutterMethodNotImplemented)
+      handlePlatform(call, result: result)
     }
   }
 }
