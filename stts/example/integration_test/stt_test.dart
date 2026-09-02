@@ -65,7 +65,7 @@ void main() {
 
     await stt.setLanguage('en_us');
     expect(await stt.getLanguage(), 'en-US');
-  }, skip: !isAndroid && !isIOS);
+  }, skip: !isAndroid && !isIOS && !isMacOS);
 
   testWidgets('start then stop', (_) async {
     if (!await sttReady()) return;
@@ -138,7 +138,7 @@ void main() {
     await Future<void>.delayed(const Duration(seconds: 1));
     expect(states.events.sublist(started + 1), isEmpty);
     expect(states.errors, isEmpty);
-  }, skip: !isWindows && !isIOS);
+  }, skip: !isWindows && !isIOS && !isMacOS);
 
   testWidgets('stop without session', (_) async {
     if (!await sttReady()) return;

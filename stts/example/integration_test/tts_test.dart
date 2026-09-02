@@ -139,7 +139,7 @@ void main() {
 
     expect(await tts.getLanguage(), language);
     expect(await tts.getVoicesByLanguage(language.toLowerCase()), isNotEmpty);
-  }, skip: !isAndroid && !isIOS);
+  }, skip: !isAndroid && !isIOS && !isMacOS);
 
   testWidgets('speaks: start then stop', (_) async {
     if (!await ttsReady()) return;
