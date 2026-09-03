@@ -66,9 +66,7 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
       synthesizer = AVSpeechSynthesizer()
       
       #if os(iOS)
-      if #available(iOS 13.0, *) {
-        synthesizer?.usesApplicationAudioSession = false
-      }
+      synthesizer?.usesApplicationAudioSession = false
       #endif
 
       synthesizer?.delegate = self
@@ -211,19 +209,14 @@ class Tts: NSObject, AVSpeechSynthesizerDelegate {
   }
   
   private func mapVoice(_ voice: AVSpeechSynthesisVoice) -> [String: Any] {
-    var gender = "unspecified"
-    
-    if #available(iOS 13.0, *) {
-      switch voice.gender {
-      case .male:
-        gender = "male"
-      case .female:
-        gender = "female"
-      case .unspecified:
-        gender = "unspecified"
-      @unknown default:
-        gender = "unspecified"
-      }
+    let gender: String
+    switch voice.gender {
+    case .male:
+      gender = "male"
+    case .female:
+      gender = "female"
+    default:
+      gender = "unspecified"
     }
   
     return [

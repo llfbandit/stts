@@ -1,4 +1,5 @@
 ## 1.3.4
+* chore(ios): Require iOS 13, like the oldest supported Flutter version.
 * fix(macos): Dispose STT and TTS when the app terminates.
 * refactor(darwin): Share iOS and macOS sources, macOS gets all iOS fixes below.
 * fix(ios): Normalize language tags (e.g. en_US, en-us).

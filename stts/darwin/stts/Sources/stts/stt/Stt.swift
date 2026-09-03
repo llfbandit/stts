@@ -219,10 +219,8 @@ class Stt {
 
     recognitionRequest.shouldReportPartialResults = true
 
-    if #available(iOS 13, *) {
-      if options.offline && recognizer.supportsOnDeviceRecognition {
-        recognitionRequest.requiresOnDeviceRecognition = true
-      }
+    if options.offline && recognizer.supportsOnDeviceRecognition {
+      recognitionRequest.requiresOnDeviceRecognition = true
     }
 
     if let taskHint = options.taskHint {
@@ -259,12 +257,10 @@ class Stt {
 
         if isFinal {
           self.stop()
-        } else if #available(iOS 13, *) {
-          if !recognitionRequest.requiresOnDeviceRecognition {
-            self.stopTimer?.invalidate()
-            self.stopTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false) { [weak self] timer in
-              self?.stop()
-            }
+        } else if !recognitionRequest.requiresOnDeviceRecognition {
+          self.stopTimer?.invalidate()
+          self.stopTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false) { [weak self] timer in
+            self?.stop()
           }
         }
       } else if let error = error {

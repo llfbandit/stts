@@ -1,6 +1,6 @@
 # iOS
 
-Minimum version: 12.0
+Minimum version: 13.0
 
 ## Speech-to-Text
 

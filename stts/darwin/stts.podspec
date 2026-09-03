@@ -16,7 +16,7 @@ Speech-to-Text Flutter plugin.
   s.source_files     = 'stts/Sources/stts/**/*.swift'
   s.ios.dependency 'Flutter'
   s.osx.dependency 'FlutterMacOS'
-  s.ios.deployment_target = '12.0'
+  s.ios.deployment_target = '13.0'
   s.osx.deployment_target = '10.15'
 
   # Flutter.framework does not contain a i386 slice.
