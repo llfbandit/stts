@@ -27,13 +27,8 @@ class SttMethodHandler {
       result(stt.getLanguage())
       
     case "setLanguage":
-      guard let args = call.arguments as? [String: Any] else {
-        result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
-        return
-      }
-      guard let language = args["language"] as? String else  {
-        result(FlutterError(code: "stt", message: "Call missing mandatory parameter language.", details: nil))
-        return
+      guard let language: String = call.arg("language") else {
+        return result(FlutterError.invalidArg("stt", "language"))
       }
 
       stt.setLanguage(language)
@@ -43,13 +38,8 @@ class SttMethodHandler {
       result(stt.getLanguages())
       
     case "start":
-      guard let args = call.arguments as? [String: Any] else {
-        result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
-        return
-      }
-      guard let options = args["options"] as? [String: Any] else  {
-        result(FlutterError(code: "stt", message: "Call missing mandatory parameter language.", details: nil))
-        return
+      guard let options: [String: Any] = call.arg("options") else {
+        return result(FlutterError.invalidArg("stt", "options"))
       }
 
       do {

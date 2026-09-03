@@ -7,16 +7,14 @@ extension SttMethodHandler {
     switch call.method {
     case "ios.manageAudioSession":
       guard let manage = call.arguments as? Bool else {
-        result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
-        return
+        return result(FlutterError.invalidArg("stt", "manage"))
       }
       stt.audioSession.manage = manage
       result(nil)
     
     case "ios.setAudioSessionActive":
       guard let active = call.arguments as? Bool else {
-        result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
-        return
+        return result(FlutterError.invalidArg("stt", "active"))
       }
       
       do {
@@ -27,17 +25,11 @@ extension SttMethodHandler {
       }
       
     case "ios.setAudioSessionCategory":
-      guard let args = call.arguments as? [String: Any] else {
-        result(FlutterError(code: "stt", message: "Failed to parse call.arguments from Flutter.", details: nil))
-        return
+      guard let category: String = call.arg("category") else {
+        return result(FlutterError.invalidArg("stt", "category"))
       }
-      guard let category = args["category"] as? String else  {
-        result(FlutterError(code: "stt", message: "Call missing mandatory parameter category.", details: nil))
-        return
-      }
-      guard let options = args["options"] as? [String] else  {
-        result(FlutterError(code: "stt", message: "Call missing mandatory parameter options.", details: nil))
-        return
+      guard let options: [String] = call.arg("options") else {
+        return result(FlutterError.invalidArg("stt", "options"))
       }
       
       do {
