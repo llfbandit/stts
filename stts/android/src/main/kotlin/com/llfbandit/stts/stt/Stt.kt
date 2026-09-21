@@ -16,6 +16,7 @@ import com.llfbandit.stts.stt.stream.SttResultStreamHandler
 import com.llfbandit.stts.stt.stream.SttStateStreamHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -31,6 +32,7 @@ class Stt(
   private var speechRecognizer: SpeechRecognizer? = null
   private var muteSystemSounds: Boolean = false
   private var originalRingerMode: Int = AudioManager.RINGER_MODE_NORMAL
+  private var ringerRestoreJob: Job? = null
 
   fun isSupported(): Boolean {
     val result = SpeechRecognizer.isRecognitionAvailable(context)
@@ -218,6 +220,12 @@ class Stt(
   }
 
   private fun saveRingerMode() {
+    // A restore is still pending. Keep the saved mode, current one is muted.
+    if (ringerRestoreJob?.isActive == true) {
+      ringerRestoreJob?.cancel()
+      return
+    }
+
     val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     originalRingerMode = audioManager.ringerMode
   }
@@ -232,10 +240,12 @@ class Stt(
   private fun restoreRingerMode(onRestored: () -> Unit) {
     if (muteSystemSounds && originalRingerMode == AudioManager.RINGER_MODE_NORMAL) {
       val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+      val ringerMode = originalRingerMode
 
-      CoroutineScope(Dispatchers.Default).launch {
+      ringerRestoreJob?.cancel()
+      ringerRestoreJob = CoroutineScope(Dispatchers.Default).launch {
         delay(400)
-        audioManager.ringerMode = originalRingerMode
+        audioManager.ringerMode = ringerMode
         onRestored()
       }
     } else {
