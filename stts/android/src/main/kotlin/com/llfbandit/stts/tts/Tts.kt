@@ -2,6 +2,8 @@ package com.llfbandit.stts.tts
 
 import android.content.Context
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import android.speech.tts.Voice
@@ -28,6 +30,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
   private val utterances = ArrayList<UtteranceInfo>()
   private var utteranceLastPosition = 0
   private var utterancePaused = false
+  private val uiThreadHandler = Handler(Looper.getMainLooper())
 
   fun create(onResult: () -> Unit) {
     if (tts == null) {
@@ -224,16 +227,20 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     utterancePaused = false
   }
 
+  // The engine calls us from its own thread.
+  // Post to the main thread to keep utterance data consistent.
   private val utteranceProgressListener = object : UtteranceProgressListener() {
     override fun onStart(utteranceId: String) {
       ttsStateStreamHandler.sendEvent(TtsState.Start)
     }
 
     override fun onDone(utteranceId: String) {
-      utterances.removeAll { info -> info.id == utteranceId }
+      uiThreadHandler.post {
+        utterances.removeAll { info -> info.id == utteranceId }
 
-      if (utterances.isEmpty()) {
-        ttsStateStreamHandler.sendEvent(TtsState.Stop)
+        if (utterances.isEmpty()) {
+          ttsStateStreamHandler.sendEvent(TtsState.Stop)
+        }
       }
     }
 
@@ -256,13 +263,13 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
 
       Log.e(LOG_TAG, "TTS error: $errorCode - ${error.message} error.")
       ttsStateStreamHandler.sendErrorEvent(error)
-      stop()
+      uiThreadHandler.post { stop() }
     }
 
     // Keep track of current utterance and its progress
     // Called only on API 26+, otherwise resume will replay from index 0
     override fun onRangeStart(utteranceId: String, startAt: Int, endAt: Int, frame: Int) {
-      utteranceLastPosition = startAt
+      uiThreadHandler.post { utteranceLastPosition = startAt }
 
       super.onRangeStart(utteranceId, startAt, endAt, frame)
     }
