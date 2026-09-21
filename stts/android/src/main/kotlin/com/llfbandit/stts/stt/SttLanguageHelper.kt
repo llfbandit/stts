@@ -9,7 +9,6 @@ import android.speech.RecognitionSupport
 import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
-import java.util.concurrent.Executors
 
 fun interface SupportedLanguagesResultCallback {
   fun onResult(locales: List<String>?)
@@ -22,7 +21,7 @@ class SpeechLanguageHelper {
       val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
 
       recognizer.checkRecognitionSupport(
-        recognizerIntent, Executors.newSingleThreadExecutor(), object : RecognitionSupportCallback {
+        recognizerIntent, context.mainExecutor, object : RecognitionSupportCallback {
           override fun onSupportResult(recognitionSupport: RecognitionSupport) {
             val result = HashSet<String>()
             result.addAll(recognitionSupport.installedOnDeviceLanguages)

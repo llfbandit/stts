@@ -20,7 +20,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
-import java.util.concurrent.Executors
 
 class Stt(
   val context: Context,
@@ -115,7 +114,7 @@ class Stt(
 
     // Check if language is already installed before triggering UI.
     recognizer.checkRecognitionSupport(
-      intent, Executors.newSingleThreadExecutor(), object :
+      intent, context.mainExecutor, object :
         RecognitionSupportCallback {
         override fun onSupportResult(recognitionSupport: RecognitionSupport) {
           if (recognitionSupport.installedOnDeviceLanguages.contains(language)) {
@@ -128,7 +127,7 @@ class Stt(
 
           recognizer.triggerModelDownload(
             intent,
-            Executors.newSingleThreadExecutor(),
+            context.mainExecutor,
             object : ModelDownloadListener {
               override fun onProgress(progress: Int) {}
               override fun onScheduled() {
