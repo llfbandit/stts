@@ -187,10 +187,19 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
     tts?.shutdown()
     tts = null
 
+    isSupported = false
     volume = 1.0f
   }
 
   private fun onInit(status: Int, onResult: () -> Unit = {}) {
+    val engine = tts
+    // We've been disposed while the engine was initializing.
+    if (engine == null) {
+      isSupported = false
+      onResult()
+      return
+    }
+
     isSupported = status == TextToSpeech.SUCCESS
 
     if (!isSupported) {
@@ -198,7 +207,7 @@ class Tts(private val context: Context, private val ttsStateStreamHandler: TtsSt
       ttsStateStreamHandler.sendErrorEvent(TtsError(-1, "initialisation"))
     } else {
       // (re-)create config in case of dispose.
-      tts!!.setOnUtteranceProgressListener(utteranceProgressListener)
+      engine.setOnUtteranceProgressListener(utteranceProgressListener)
     }
 
     onResult()
